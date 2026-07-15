@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Neogalleries Admin</title>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
+    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="style/palette.css">
+</head>
+
+<body>
+    <div id="bg-parallax"></div>
+
+    <header class="fg-header">
+        <div class="fg-wrap">
+            <a href="index.html" class="fg-logo">
+                <img src="resources/logo.svg" alt="icon">
+            </a>
+            <nav>
+                <a class="fg-button" href="gallery.html">Gallery</a>
+                <a class="fg-button" href="resources.html">Resources</a>
+                <a class="fg-button" href="about.html">About</a>
+                <a class="fg-button" href="admin.html">Admin</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div id="ngProxyWarning" class="ng-status err ng-hidden">
+            ⚠️ Configure <code>PROXY_URL</code> in <code>neogalleries.js</code> before using the admin panel (see
+            <code>proxy-worker/worker.js</code> and the instructions that come with this site).
+        </div>
+
+        <!-- MARK: login -->
+        <section id="loginScreen">
+            <h1>Login with Neocities</h1>
+            <p>Use the username and password of your Neocities site, or paste a API key directly.</p>
+
+            <form class="ng-form" id="loginForm">
+                <label>
+                    <span style="display:flex; align-items:center; gap:0.4rem;">
+                        <input type="checkbox" id="useKeyCheckbox" style="width:auto;"> I already have an API key
+                    </span>
+                </label>
+                <label id="usernameField">
+                    Username
+                    <input type="text" name="username" autocomplete="username">
+                </label>
+                <label id="secretLabel">
+                    Password
+                    <input type="password" name="secret" autocomplete="current-password" required>
+                </label>
+                <button type="submit">Login</button>
+            </form>
+
+            <div id="loginStatus"></div>
+        </section>
+
+        <!-- MARK: account info -->
+        <section id="accountInfo" class="ng-hidden" style="margin-bottom:2rem;">
+            <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start;">
+                <img id="accountThumb" src="" alt="Site thumbnail"
+                    style="width:270px; height:202px; object-fit:cover; border-radius:6px; border:1px solid var(--line);">
+                <div style="min-width:200px;">
+                    <h2 id="accountSitename" style="margin:0 0 0.4rem;"></h2>
+                    <p id="accountSiteUrl" style="margin:0 0 0.8rem;"></p>
+                    <dl style="margin:0; font-size:0.9rem; line-height:1.8;">
+                        <dt style="color:var(--muted);">Domain</dt>
+                        <dd id="accountDomain" style="margin:0;"></dd>
+                        <dt style="color:var(--muted);">Hits</dt>
+                        <dd id="accountHits" style="margin:0;"></dd>
+                        <dt style="color:var(--muted);">Tags</dt>
+                        <dd id="accountTags" style="margin:0;"></dd>
+                        <dt style="color:var(--muted);">Created</dt>
+                        <dd id="accountCreated" style="margin:0;"></dd>
+                        <dt style="color:var(--muted);">Last Updated</dt>
+                        <dd id="accountUpdated" style="margin:0;"></dd>
+                    </dl>
+                </div>
+            </div>
+            <p style="margin-top:1rem;"><a href="#" id="ngLogoutLink" class="ng-hidden fg-link">Logout</a></p>
+        </section>
+
+        <!-- MARK: admin panel -->
+
+        <section id="adminScreen" class="ng-hidden">
+            <div class="flex vertical-center horizontal-space-between">
+                <h1>Gallery Items</h1>
+                <div class="flex vertical-center gap">
+                    <button id="ngNewItemBtn" class="fg-button">New Item</button>
+                </div>
+            </div>
+
+            <div id="adminStatus"></div>
+
+            <div id="itemList"></div>
+
+            <!-- create/edit form -->
+            <div id="formPanel" class="ng-hidden"
+                style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--line);">
+                <h2 id="formTitle">New Item</h2>
+                <form class="ng-form" id="itemForm">
+                    <label>
+                        Main Image <span id="imageFileHint" style="font-weight:normal;"></span>
+                        <input type="file" name="imageFile" id="imageFile" accept="image/*,.svg">
+                    </label>
+                    <label>
+                        Alternative Images (children)
+                        <input type="file" name="childFiles" id="childFiles" accept="image/*,.svg" multiple>
+                        <small style="font-weight:normal;">Files will be named automatically (e.g., 134.1.png,
+                            134.2.png...)</small>
+                    </label>
+                    <div id="existingChildren" style="display:none; margin-top:0.3rem;"></div>
+                    <label>
+                        Filename (in gallery/)
+                        <input type="text" name="filename" required placeholder="ex: gato-dormindo.png">
+                    </label>
+                    <label>
+                        Title (caption)
+                        <input type="text" name="caption" required>
+                    </label>
+                    <label>
+                        Description (accepts HTML)
+                        <textarea name="description" rows="4"
+                            placeholder="&lt;p&gt;Your description here&lt;/p&gt;"></textarea>
+                    </label>
+                    <label>
+                        Alternative Text (alt)
+                        <input type="text" name="alt">
+                    </label>
+                    <label>
+                        Tags (separated by commas)
+                        <input type="text" name="tags" placeholder="e.g., cats, illustration">
+                    </label>
+                    <label>
+                        Authors (separated by commas)
+                        <input type="text" name="authors" placeholder="e.g., John Doe, Jane Smith">
+                    </label>
+                    <label>
+                        Creation Date
+                        <input type="datetime-local" name="createdate" required>
+                    </label>
+                    <div style="display:flex; gap:0.6rem;">
+                        <button type="submit">Save</button>
+                        <button type="button" class="secondary" id="ngCancelForm">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        (() => {
+            const maxBg = 2;
+            const now = new Date();
+            const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+            let s = seed;
+            const rand = () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
+            const bgIndex = Math.floor(rand() * maxBg) + 1;
+            const el = document.getElementById('bg-parallax');
+            const img = new Image();
+            img.src = `resources/bg/${bgIndex}.png`;
+            img.onload = () => {
+                el.style.backgroundImage = `url('resources/bg/${bgIndex}.png')`;
+                const recalc = () => {
+                    const vw = window.innerWidth, vh = window.innerHeight;
+                    const coverH = Math.max(vw / (img.naturalWidth / img.naturalHeight), vh);
+                    const maxScroll = document.documentElement.scrollHeight - vh;
+                    const factor = maxScroll > 0 ? (coverH - vh) / maxScroll : 0;
+                    el.dataset.factor = factor;
+                };
+                recalc();
+                window.addEventListener('resize', recalc, { passive: true });
+                window.addEventListener('scroll', () => {
+                    el.style.backgroundPositionY = `${-window.scrollY * el.dataset.factor}px`;
+                }, { passive: true });
+            };
+        })();
+    </script>
+    <script src="neogalleries.js"></script>
+    <script>
+        (() => {
+            const $ = sel => document.querySelector(sel);
+
+            let auth = null;
+            let galleryData = null;
+
+            // ---------- avisa se o proxy não foi configurado ----------
+            if (NeoGalleries.CONFIG.PROXY_URL.includes("SEU-WORKER")) {
+                $("#ngProxyWarning").classList.remove("ng-hidden");
+            }
+
+            // ---------- alterna entre login com senha e login com chave de API ----------
+            const useKeyCheckbox = $("#useKeyCheckbox");
+            useKeyCheckbox.addEventListener("change", () => {
+                const usingKey = useKeyCheckbox.checked;
+                $("#usernameField").classList.toggle("ng-hidden", usingKey);
+                $("#secretLabel").firstChild.textContent = usingKey ? "Chave de API" : "Senha";
+            });
+
+            function setStatus(el, type, msg) {
+                el.innerHTML = msg ? `<div class="ng-status ${type}">${NeoGalleries.escapeHtml(msg)}</div>` : "";
+            }
+
+            // ---------- login ----------
+            $("#loginForm").addEventListener("submit", async e => {
+                e.preventDefault();
+                const status = $("#loginStatus");
+                setStatus(status, "info", "Entrando...");
+                try {
+                    let apiKey;
+                    if (useKeyCheckbox.checked) {
+                        apiKey = e.target.secret.value.trim();
+                        await NeoGalleries.NeoCitiesAPI.info({ apiKey });
+                    } else {
+                        const user = e.target.username.value.trim();
+                        const pass = e.target.secret.value;
+                        if (!user) throw new Error("Informe o nome do seu site no Neocities.");
+                        apiKey = await NeoGalleries.NeoCitiesAPI.getApiKey(user, pass);
+                    }
+                    sessionStorage.setItem("ng_admin_key", apiKey);
+                    setStatus(status, "", "");
+                    await enterAdmin(apiKey);
+                } catch (err) {
+                    setStatus(status, "err", err.message);
+                }
+            });
+
+            // ---------- entra no painel ----------
+            async function enterAdmin(apiKey) {
+                auth = { apiKey };
+                $("#loginScreen").classList.add("ng-hidden");
+                $("#accountInfo").classList.remove("ng-hidden");
+                $("#adminScreen").classList.remove("ng-hidden");
+                $("#ngLogoutLink").classList.remove("ng-hidden");
+
+                NeoGalleries.NeoCitiesAPI.info(auth).then(info => {
+                    const sitename = info.sitename || "";
+                    $("#accountSitename").textContent = sitename;
+                    $("#accountSiteUrl").innerHTML = `<a href="https://${NeoGalleries.escapeHtml(sitename)}.neocities.org" target="_blank" rel="noopener">${NeoGalleries.escapeHtml(sitename)}.neocities.org</a>`;
+                    $("#accountThumb").src = `https://neocities.org/site_screenshots/90/83/${encodeURIComponent(sitename)}/index.html.540x405.webp`;
+                    $("#accountDomain").textContent = info.domain || "9";
+                    $("#accountHits").textContent = info.hits != null ? info.hits.toLocaleString() : "—";
+                    $("#accountTags").textContent = (info.tags && info.tags.length) ? info.tags.join(", ") : "—";
+                    $("#accountCreated").textContent = info.created_at ? NeoGalleries.formatDisplayDate(info.created_at) : "—";
+                    $("#accountUpdated").textContent = info.last_updated ? NeoGalleries.formatDisplayDate(info.last_updated) : "—";
+                }).catch(() => { });
+
+                try {
+                    await NeoGalleries.NeoCitiesAPI.createDirectory(auth, "gallery");
+                } catch (_) { }
+                galleryData = await NeoGalleries.loadGallery();
+                renderList();
+            }
+
+            $("#ngLogoutLink").addEventListener("click", e => {
+                e.preventDefault();
+                sessionStorage.removeItem("ng_admin_key");
+                window.location.reload();
+            });
+
+            window.addEventListener("DOMContentLoaded", () => {
+                const saved = sessionStorage.getItem("ng_admin_key");
+                if (saved) {
+                    enterAdmin(saved).catch(err => {
+                        sessionStorage.removeItem("ng_admin_key");
+                        setStatus($("#loginStatus"), "err", "Sessão expirou: " + err.message);
+                    });
+                }
+            });
+
+            // ---------- lista de itens ----------
+            function renderList() {
+                const list = $("#itemList");
+                const items = NeoGalleries.sortByDateDesc(galleryData.items);
+                if (!items.length) {
+                    list.innerHTML = `<p class="ng-empty">Nenhum item ainda. Adicione o primeiro! ✦</p>`;
+                    return;
+                }
+                list.innerHTML = items.map(it => {
+                    const childCount = (it.children || []).length;
+                    return `
+      <div class="ng-item-row">
+        <img src="${NeoGalleries.escapeHtml(NeoGalleries.imgSrc(it.filename))}" alt="">
+        <div class="grow">
+          <strong>${NeoGalleries.escapeHtml(it.caption)}</strong>
+          <small>${NeoGalleries.escapeHtml(it.filename)}${childCount ? ` · ${childCount} child${childCount > 1 ? "ren" : ""}` : ""} · ${NeoGalleries.escapeHtml(NeoGalleries.formatDisplayDate(it.createdate))}</small>
+        </div>
+        <button class="secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Editar</button>
+        <button class="danger" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Excluir</button>
+      </div>`;
+                }).join("");
+            }
+
+            $("#itemList").addEventListener("click", e => {
+                const btn = e.target.closest("button[data-action]");
+                if (!btn) return;
+                const filename = btn.dataset.filename;
+                const item = galleryData.items.find(it => it.filename === filename);
+                if (btn.dataset.action === "edit") openForm("edit", item);
+                if (btn.dataset.action === "delete") handleDelete(filename);
+            });
+
+            // ---------- formulário ----------
+            const form = $("#itemForm");
+            const imageFileInput = $("#imageFile");
+
+            $("#ngNewItemBtn").addEventListener("click", () => openForm("create"));
+            $("#ngCancelForm").addEventListener("click", closeForm);
+
+            function openForm(mode, item) {
+                form.reset();
+                delete form.dataset.originalFilename;
+                document.getElementById("existingChildren").style.display = "none";
+                document.getElementById("existingChildren").innerHTML = "";
+                if (mode === "edit" && item) {
+                    $("#formTitle").textContent = "Editar item";
+                    form.dataset.originalFilename = item.filename;
+                    form.filename.value = item.filename;
+                    form.caption.value = item.caption || "";
+                    form.description.value = item.description || "";
+                    form.alt.value = item.alt || "";
+                    form.tags.value = (item.tags || []).join(", ");
+                    form.authors.value = (item.authors || []).join(", ");
+                    form.createdate.value = NeoGalleries.toInputLocal(item.createdate);
+                    imageFileInput.required = false;
+                    $("#imageFileHint").textContent = "(deixe em branco para manter a imagem atual)";
+                    const children = item.children || [];
+                    if (children.length) {
+                        const el = document.getElementById("existingChildren");
+                        el.style.display = "block";
+                        el.innerHTML = `<small style="color:var(--muted);">Filhas existentes: ${children.map(c => NeoGalleries.escapeHtml(c)).join(", ")}</small>`;
+                    }
+                } else {
+                    $("#formTitle").textContent = "Novo item";
+                    form.createdate.value = NeoGalleries.toInputLocal(NeoGalleries.nowAsCreateDate());
+                    imageFileInput.required = true;
+                    $("#imageFileHint").textContent = "";
+                }
+                $("#formPanel").classList.remove("ng-hidden");
+                $("#formPanel").scrollIntoView({ behavior: "smooth" });
+            }
+
+            function closeForm() {
+                $("#formPanel").classList.add("ng-hidden");
+                form.reset();
+            }
+
+            imageFileInput.addEventListener("change", () => {
+                if (!form.dataset.originalFilename && imageFileInput.files[0] && !form.filename.value) {
+                    form.filename.value = imageFileInput.files[0].name.replace(/\s+/g, "_");
+                }
+            });
+
+            function splitList(str) {
+                return str.split(",").map(s => s.trim()).filter(Boolean);
+            }
+
+            form.addEventListener("submit", async e => {
+                e.preventDefault();
+                const status = $("#adminStatus");
+                setStatus(status, "info", "Salvando...");
+                try {
+                    const originalFilename = form.dataset.originalFilename || null;
+                    const isEdit = !!originalFilename;
+
+                    const newItem = {
+                        filename: form.filename.value.trim(),
+                        caption: form.caption.value.trim(),
+                        description: form.description.value,
+                        alt: form.alt.value.trim(),
+                        tags: splitList(form.tags.value),
+                        authors: splitList(form.authors.value),
+                        createdate: NeoGalleries.fromInputLocal(form.createdate.value),
+                        children: []
+                    };
+
+                    if (!newItem.filename || !newItem.caption || !form.createdate.value) {
+                        throw new Error("Preencha ao menos o nome do arquivo, o título e a data.");
+                    }
+
+                    const hasNewFile = imageFileInput.files && imageFileInput.files[0];
+                    if (!isEdit && !hasNewFile) {
+                        throw new Error("Selecione uma imagem para um item novo.");
+                    }
+
+                    const uploads = {};
+                    if (hasNewFile) {
+                        uploads["gallery/" + newItem.filename] = imageFileInput.files[0];
+                    } else if (isEdit && newItem.filename !== originalFilename) {
+                        const blob = await (await fetch(NeoGalleries.imgSrc(originalFilename))).blob();
+                        uploads["gallery/" + newItem.filename] = blob;
+                    }
+
+                    // Preserve existing children on edit
+                    if (isEdit) {
+                        const existingItem = galleryData.items.find(it => it.filename === originalFilename);
+                        if (existingItem && existingItem.children) {
+                            newItem.children = existingItem.children.slice();
+                        }
+                    }
+
+                    // Handle new child files
+                    const childFiles = document.getElementById("childFiles").files;
+                    if (childFiles.length > 0) {
+                        const stem = newItem.filename.replace(/\.[^.]+$/, "");
+                        const ext = newItem.filename.includes(".") ? newItem.filename.split(".").pop() : "png";
+                        // Find the next available child index
+                        let nextIdx = 1;
+                        const existingChildren = newItem.children;
+                        while (existingChildren.some(c => c === `${stem}.${nextIdx}.${ext}`)) nextIdx++;
+
+                        for (const file of childFiles) {
+                            const childName = `${stem}.${nextIdx}.${ext}`;
+                            uploads["gallery/" + childName] = file;
+                            newItem.children.push(childName);
+                            nextIdx++;
+                        }
+                    }
+
+                    if (Object.keys(uploads).length) {
+                        await NeoGalleries.NeoCitiesAPI.upload(auth, uploads);
+                    }
+
+                    if (isEdit) {
+                        const idx = galleryData.items.findIndex(it => it.filename === originalFilename);
+                        if (idx >= 0) galleryData.items[idx] = newItem; else galleryData.items.push(newItem);
+                    } else {
+                        galleryData.items.push(newItem);
+                    }
+
+                    await saveGalleryAndRSS();
+
+                    if (isEdit && newItem.filename !== originalFilename) {
+                        try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, ["gallery/" + originalFilename]); } catch (_) { }
+                    }
+
+                    setStatus(status, "ok", "Salvo com sucesso!");
+                    closeForm();
+                    renderList();
+                } catch (err) {
+                    setStatus(status, "err", err.message);
+                }
+            });
+
+            async function handleDelete(filename) {
+                const item = galleryData.items.find(it => it.filename === filename);
+                const childFiles = (item && item.children) || [];
+                const alsoDeleteImage = confirm(`Excluir "${filename}" e ${childFiles.length ? childFiles.length + " imagem(ns) filha(s)" : "esta imagem"}?\nOK = excluir tudo · Cancelar = manter no servidor, remover só da galeria.`);
+                const status = $("#adminStatus");
+                setStatus(status, "info", "Excluindo...");
+                try {
+                    galleryData.items = galleryData.items.filter(it => it.filename !== filename);
+                    await saveGalleryAndRSS();
+                    if (alsoDeleteImage) {
+                        const toDelete = ["gallery/" + filename, ...childFiles.map(c => "gallery/" + c)];
+                        try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, toDelete); } catch (_) { }
+                    }
+                    setStatus(status, "ok", "Item excluído.");
+                    renderList();
+                } catch (err) {
+                    setStatus(status, "err", err.message);
+                }
+            }
+
+            async function saveGalleryAndRSS() {
+                const jsonBlob = new Blob([JSON.stringify(galleryData, null, 2)], { type: "application/json" });
+                const rssBlob = new Blob([NeoGalleries.buildRSS(galleryData)], { type: "application/xml" });
+                await NeoGalleries.NeoCitiesAPI.upload(auth, {
+                    "gallery.json": jsonBlob,
+                    "rss.xml": rssBlob
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>
