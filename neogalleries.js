@@ -294,6 +294,10 @@ const NeoGalleries = (() => {
     return { getApiKey, info, list, createDirectory, deleteFiles, upload };
   })();
 
+  function openAdminWindow() {
+    window.open('https://flarom.github.io/neogalleries-admin', '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+  }
+
   // ------------------------------------------------------------------
   return {
     CONFIG,
@@ -301,6 +305,6 @@ const NeoGalleries = (() => {
     nowAsCreateDate, formatDisplayDate, formatRFC822,
     escapeHtml, loadGallery, sortByDateDesc, filterItems, paginate,
     imgSrc, cardHTML, renderGrid, allImages, hasMultipleImages, itemImgSrc,
-    buildRSS, NeoCitiesAPI
+    buildRSS, NeoCitiesAPI, openAdminWindow
   };
 })();

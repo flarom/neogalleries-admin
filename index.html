@@ -5,28 +5,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Neogalleries Admin</title>
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="rss.xml">
-    <link rel="stylesheet" href="style/style.css">
-    <link rel="stylesheet" href="style/palette.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0');
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+
+        :root {
+            --bg: #2a2229;
+            --fg: #fffbe8;
+            --muted: #a09895;
+            --line: rgba(255,251,232,.12);
+            --accent: #d4a574;
+            --danger: #c9706b;
+            --surface: rgba(255,255,255,.04);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: "Ubuntu", sans-serif;
+            line-height: 1.55;
+        }
+
+        h1, h2, h3 { font-family: "Comic Neue", cursive; font-weight: 700; }
+
+        .material-symbols-outlined { font-size: 20px; vertical-align: middle; }
+
+        .fg-button {
+            display: inline-flex; align-items: center; gap: .35rem;
+            padding: .35rem .75rem;
+            border: 1px solid var(--line); border-radius: 4px;
+            color: var(--fg); text-decoration: none; font-size: .85rem;
+            background: transparent; cursor: pointer;
+            transition: border-color .15s, background .15s;
+        }
+        .fg-button:hover { border-color: var(--accent); background: var(--surface); }
+        .fg-button.secondary { border-style: dashed; }
+        .fg-button.destructive { border-color: var(--danger); color: var(--danger); }
+        .fg-button.destructive:hover { background: rgba(201,112,107,.1); }
+
+        /* layout */
+        main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+        section { margin-bottom: 2.5rem; }
+        h1, h2, h3 { margin: 0 0 1rem; }
+        h1 { font-size: 1.6rem; }
+        h2 { font-size: 1.2rem; }
+        p { margin: .6rem 0; }
+
+        .flex { display: flex; }
+        .vertical-center { align-items: center; }
+        .horizontal-space-between { justify-content: space-between; }
+        .gap { gap: .6rem; }
+        .grow { flex: 1; min-width: 0; }
+
+        /* forms */
+        .ng-form {
+            display: flex; flex-direction: column; gap: 1rem;
+            max-width: 520px;
+        }
+        .ng-form label {
+            display: flex; flex-direction: column; gap: .25rem;
+            font-size: .85rem; color: var(--muted);
+        }
+        .ng-form input[type="text"],
+        .ng-form input[type="password"],
+        .ng-form input[type="datetime-local"],
+        .ng-form textarea {
+            background: var(--surface); border: 1px solid var(--line);
+            color: var(--fg); padding: .5rem .65rem; border-radius: 4px;
+            font: inherit; font-size: .9rem;
+            transition: border-color .15s;
+        }
+        .ng-form input:focus,
+        .ng-form textarea:focus {
+            outline: none; border-color: var(--accent);
+        }
+        .ng-form input[type="file"] { font-size: .82rem; color: var(--muted); }
+        .ng-form button[type="submit"] { align-self: flex-start; margin-top: .3rem; }
+        .ng-form small { color: var(--muted); font-size: .78rem; }
+
+        /* status */
+        .ng-status {
+            padding: .55rem .8rem; border-radius: 4px;
+            font-size: .85rem; margin: .8rem 0; line-height: 1.5;
+        }
+        .ng-status.info { border: 1px solid var(--line); color: var(--muted); }
+        .ng-status.ok { border: 1px solid #6a9e6a; color: #a8d4a8; }
+        .ng-status.err { border: 1px solid var(--danger); color: #f0a8a4; }
+        .ng-status code {
+            background: rgba(255,255,255,.07); padding: .1rem .3rem;
+            border-radius: 3px; font-size: .82rem;
+        }
+
+        /* item list */
+        .ng-item-row {
+            display: flex; align-items: center; gap: 1rem;
+            padding: .75rem 0; border-bottom: 1px solid var(--line);
+        }
+        .ng-item-row img {
+            width: 64px; height: 48px; object-fit: cover;
+            border-radius: 4px; background: var(--surface);
+        }
+        .ng-item-row small { display: block; color: var(--muted); font-size: .78rem; margin-top: .15rem; }
+        .ng-empty { color: var(--muted); text-align: center; padding: 3rem 0; }
+
+        .ng-hidden { display: none !important; }
+
+        /* links */
+        .fg-link {
+            color: var(--accent); text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color .15s;
+        }
+        .fg-link:hover { border-color: var(--accent); }
+
+        /* account */
+        #accountInfo dl { font-size: .88rem; line-height: 1.8; }
+        #accountInfo dt { color: var(--muted); }
+        #accountInfo dd { margin: 0; }
+    </style>
 </head>
 
 <body>
-    <div id="bg-parallax"></div>
-
-    <header class="fg-header">
-        <div class="fg-wrap">
-            <a href="https://flarom.neocities.org/index.html" class="fg-logo">
-                <img src="resources/logo.svg" alt="icon">
-            </a>
-            <nav>
-                <a class="fg-button" href="https://flarom.neocities.org/gallery.html">Gallery</a>
-                <a class="fg-button" href="https://flarom.neocities.org/resources.html">Resources</a>
-                <a class="fg-button" href="https://flarom.neocities.org/about.html">About</a>
-                <a class="fg-button" href="https://flarom.github.io/neogalleries-admin/">Admin</a>
-            </nav>
-        </div>
-    </header>
-
     <main>
         <div id="ngProxyWarning" class="ng-status err ng-hidden">
             ⚠️ Configure <code>PROXY_URL</code> in <code>neogalleries.js</code> before using the admin panel (see
@@ -89,7 +193,7 @@
             <div class="flex vertical-center horizontal-space-between">
                 <h1>Gallery Items</h1>
                 <div class="flex vertical-center gap">
-                    <button id="ngNewItemBtn" class="fg-button">New Item</button>
+                    <button id="ngNewItemBtn" class="fg-button"><span class="material-symbols-outlined">add</span> New Item</button>
                 </div>
             </div>
 
@@ -151,34 +255,6 @@
         </section>
     </main>
 
-    <script>
-        (() => {
-            const maxBg = 2;
-            const now = new Date();
-            const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-            let s = seed;
-            const rand = () => { s = (s * 16807 + 0) % 2147483647; return (s - 1) / 2147483646; };
-            const bgIndex = Math.floor(rand() * maxBg) + 1;
-            const el = document.getElementById('bg-parallax');
-            const img = new Image();
-            img.src = `resources/bg/${bgIndex}.png`;
-            img.onload = () => {
-                el.style.backgroundImage = `url('resources/bg/${bgIndex}.png')`;
-                const recalc = () => {
-                    const vw = window.innerWidth, vh = window.innerHeight;
-                    const coverH = Math.max(vw / (img.naturalWidth / img.naturalHeight), vh);
-                    const maxScroll = document.documentElement.scrollHeight - vh;
-                    const factor = maxScroll > 0 ? (coverH - vh) / maxScroll : 0;
-                    el.dataset.factor = factor;
-                };
-                recalc();
-                window.addEventListener('resize', recalc, { passive: true });
-                window.addEventListener('scroll', () => {
-                    el.style.backgroundPositionY = `${-window.scrollY * el.dataset.factor}px`;
-                }, { passive: true });
-            };
-        })();
-    </script>
     <script src="neogalleries.js"></script>
     <script>
         (() => {
@@ -294,8 +370,8 @@
           <strong>${NeoGalleries.escapeHtml(it.caption)}</strong>
           <small>${NeoGalleries.escapeHtml(it.filename)}${childCount ? ` · ${childCount} child${childCount > 1 ? "ren" : ""}` : ""} · ${NeoGalleries.escapeHtml(NeoGalleries.formatDisplayDate(it.createdate))}</small>
         </div>
-        <button class="fg-button secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Edit</button>
-        <button class="fg-button destructive" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Delete</button>
+        <button class="fg-button secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}"><span class="material-symbols-outlined">edit</span> Edit</button>
+        <button class="fg-button destructive" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}"><span class="material-symbols-outlined">delete</span> Delete</button>
       </div>`;
                 }).join("");
             }
