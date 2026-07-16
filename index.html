@@ -15,14 +15,14 @@
 
     <header class="fg-header">
         <div class="fg-wrap">
-            <a href="index.html" class="fg-logo">
+            <a href="https://flarom.neocities.org/index.html" class="fg-logo">
                 <img src="resources/logo.svg" alt="icon">
             </a>
             <nav>
-                <a class="fg-button" href="gallery.html">Gallery</a>
-                <a class="fg-button" href="resources.html">Resources</a>
-                <a class="fg-button" href="about.html">About</a>
-                <a class="fg-button" href="admin.html">Admin</a>
+                <a class="fg-button" href="https://flarom.neocities.org/gallery.html">Gallery</a>
+                <a class="fg-button" href="https://flarom.neocities.org/resources.html">Resources</a>
+                <a class="fg-button" href="https://flarom.neocities.org/about.html">About</a>
+                <a class="fg-button" href="https://flarom.github.io/neogalleries-admin/">Admin</a>
             </nav>
         </div>
     </header>
@@ -115,7 +115,7 @@
                     <div id="existingChildren" style="display:none; margin-top:0.3rem;"></div>
                     <label>
                         Filename (in gallery/)
-                        <input type="text" name="filename" required placeholder="ex: gato-dormindo.png">
+                        <input type="text" name="filename" required placeholder="ex: image.png">
                     </label>
                     <label>
                         Title (caption)
@@ -142,9 +142,9 @@
                         Creation Date
                         <input type="datetime-local" name="createdate" required>
                     </label>
-                    <div style="display:flex; gap:0.6rem;">
-                        <button type="submit">Save</button>
-                        <button type="button" class="secondary" id="ngCancelForm">Cancel</button>
+                    <div class="flex gap">
+                        <button type="submit" class="fg-button">Save</button>
+                        <button type="button" class="fg-button secondary" id="ngCancelForm">Cancel</button>
                     </div>
                 </form>
             </div>
@@ -294,8 +294,8 @@
           <strong>${NeoGalleries.escapeHtml(it.caption)}</strong>
           <small>${NeoGalleries.escapeHtml(it.filename)}${childCount ? ` · ${childCount} child${childCount > 1 ? "ren" : ""}` : ""} · ${NeoGalleries.escapeHtml(NeoGalleries.formatDisplayDate(it.createdate))}</small>
         </div>
-        <button class="secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Editar</button>
-        <button class="danger" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Excluir</button>
+        <button class="fg-button secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Edit</button>
+        <button class="fg-button destructive" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}">Delete</button>
       </div>`;
                 }).join("");
             }
