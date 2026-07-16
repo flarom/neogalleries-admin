@@ -173,8 +173,9 @@ const NeoGalleries = (() => {
   // Renderização (cards) - reaproveitado por index.html e gallery.html
   // ------------------------------------------------------------------
 
-  function imgSrc(filename) {
-    return CONFIG.GALLERY_DIR + filename;
+  function imgSrc(filename, baseUrl) {
+    const path = CONFIG.GALLERY_DIR + filename;
+    return baseUrl ? baseUrl.replace(/\/$/, "") + "/" + path : path;
   }
 
   function cardHTML(item, opts = {}) {

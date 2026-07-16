@@ -186,6 +186,7 @@
 
             let auth = null;
             let galleryData = null;
+            let neocitiesSiteUrl = "";
 
             // ---------- avisa se o proxy não foi configurado ----------
             if (NeoGalleries.CONFIG.PROXY_URL.includes("SEU-WORKER")) {
@@ -242,6 +243,7 @@
                     const info = resp.info || {};
                     const sitename = info.sitename || "";
                     siteUrl = `https://${sitename}.neocities.org`;
+                    neocitiesSiteUrl = siteUrl;
                     $("#accountSitename").textContent = sitename;
                     $("#accountSiteUrl").innerHTML = `<a href="${NeoGalleries.escapeHtml(siteUrl)}" target="_blank" rel="noopener">${NeoGalleries.escapeHtml(sitename)}.neocities.org</a>`;
                     $("#accountThumb").src = `https://neocities.org/site_screenshots/90/83/${encodeURIComponent(sitename)}/index.html.540x405.webp`;
@@ -287,7 +289,7 @@
                     const childCount = (it.children || []).length;
                     return `
       <div class="ng-item-row">
-        <img src="${NeoGalleries.escapeHtml(NeoGalleries.imgSrc(it.filename))}" alt="">
+        <img src="${NeoGalleries.escapeHtml(NeoGalleries.imgSrc(it.filename, neocitiesSiteUrl))}" alt="">
         <div class="grow">
           <strong>${NeoGalleries.escapeHtml(it.caption)}</strong>
           <small>${NeoGalleries.escapeHtml(it.filename)}${childCount ? ` · ${childCount} child${childCount > 1 ? "ren" : ""}` : ""} · ${NeoGalleries.escapeHtml(NeoGalleries.formatDisplayDate(it.createdate))}</small>
@@ -394,7 +396,7 @@
                     if (hasNewFile) {
                         uploads["gallery/" + newItem.filename] = imageFileInput.files[0];
                     } else if (isEdit && newItem.filename !== originalFilename) {
-                        const blob = await (await fetch(NeoGalleries.imgSrc(originalFilename))).blob();
+                        const blob = await (await fetch(NeoGalleries.imgSrc(originalFilename, neocitiesSiteUrl))).blob();
                         uploads["gallery/" + newItem.filename] = blob;
                     }
 
@@ -432,7 +434,7 @@
                         const idx = galleryData.items.findIndex(it => it.filename === originalFilename);
                         if (idx >= 0) galleryData.items[idx] = newItem; else galleryData.items.push(newItem);
                     } else {
-                        galleryData.items.push(newItem);
+                        galleryData.items.unshift(newItem);
                     }
 
                     await saveGalleryAndRSS();
