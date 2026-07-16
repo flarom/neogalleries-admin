@@ -13,7 +13,7 @@
 const NeoGalleries = (() => {
 
   // ------------------------------------------------------------------
-  // config
+  // CONFIGURAÇÃO - ajuste aqui
   // ------------------------------------------------------------------
   const CONFIG = {
     GALLERY_JSON: "gallery.json",
@@ -24,7 +24,7 @@ const NeoGalleries = (() => {
   };
 
   // ------------------------------------------------------------------
-  // date utilities
+  // Utilidades de data
   // ------------------------------------------------------------------
 
   function parseCreateDate(str) {
@@ -70,7 +70,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // secure text
+  // Texto seguro
   // ------------------------------------------------------------------
 
   function escapeHtml(str) {
@@ -80,11 +80,14 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // data loading
+  // Carregamento de dados
   // ------------------------------------------------------------------
 
-  async function loadGallery() {
-    const res = await fetch(CONFIG.GALLERY_JSON, { cache: "no-store" });
+  async function loadGallery(baseUrl) {
+    const url = baseUrl
+      ? baseUrl.replace(/\/$/, "") + "/" + CONFIG.GALLERY_JSON
+      : CONFIG.GALLERY_JSON;
+    const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("Não foi possível carregar o gallery.json");
     const data = await res.json();
     if (!data.items) data.items = [];
@@ -97,7 +100,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // helper children
+  // Children helpers
   // ------------------------------------------------------------------
 
   function allImages(item) {
@@ -115,7 +118,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // filters
+  // Filtros (usados pelo gallery.html via querystring)
   // ------------------------------------------------------------------
 
   function filterItems(items, params) {
@@ -163,7 +166,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // render cards
+  // Renderização (cards) - reaproveitado por index.html e gallery.html
   // ------------------------------------------------------------------
 
   function imgSrc(filename) {
@@ -190,7 +193,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // rss
+  // RSS
   // ------------------------------------------------------------------
 
   function buildRSS(gallery) {
@@ -220,7 +223,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // neocities api client
+  // Cliente da API do Neocities (via proxy de CORS) - usado pelo admin.html
   // ------------------------------------------------------------------
 
   const NeoCitiesAPI = (() => {

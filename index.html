@@ -236,22 +236,25 @@
                 $("#adminScreen").classList.remove("ng-hidden");
                 $("#ngLogoutLink").classList.remove("ng-hidden");
 
-                NeoGalleries.NeoCitiesAPI.info(auth).then(info => {
+                let siteUrl = "";
+                try {
+                    const info = await NeoGalleries.NeoCitiesAPI.info(auth);
                     const sitename = info.sitename || "";
+                    siteUrl = `https://${sitename}.neocities.org`;
                     $("#accountSitename").textContent = sitename;
-                    $("#accountSiteUrl").innerHTML = `<a href="https://${NeoGalleries.escapeHtml(sitename)}.neocities.org" target="_blank" rel="noopener">${NeoGalleries.escapeHtml(sitename)}.neocities.org</a>`;
+                    $("#accountSiteUrl").innerHTML = `<a href="${NeoGalleries.escapeHtml(siteUrl)}" target="_blank" rel="noopener">${NeoGalleries.escapeHtml(sitename)}.neocities.org</a>`;
                     $("#accountThumb").src = `https://neocities.org/site_screenshots/90/83/${encodeURIComponent(sitename)}/index.html.540x405.webp`;
-                    $("#accountDomain").textContent = info.domain || "9";
+                    $("#accountDomain").textContent = info.domain || "—";
                     $("#accountHits").textContent = info.hits != null ? info.hits.toLocaleString() : "—";
                     $("#accountTags").textContent = (info.tags && info.tags.length) ? info.tags.join(", ") : "—";
-                    $("#accountCreated").textContent = info.created_at ? NeoGalleries.formatDisplayDate(info.created_at) : "—";
+                    $("#accountCreated").textContent = info.created_at ? NeoGalleries.formatDisplayDate(info.createdate) : "—";
                     $("#accountUpdated").textContent = info.last_updated ? NeoGalleries.formatDisplayDate(info.last_updated) : "—";
-                }).catch(() => { });
+                } catch (_) { }
 
                 try {
                     await NeoGalleries.NeoCitiesAPI.createDirectory(auth, "gallery");
                 } catch (_) { }
-                galleryData = await NeoGalleries.loadGallery();
+                galleryData = await NeoGalleries.loadGallery(siteUrl);
                 renderList();
             }
 
