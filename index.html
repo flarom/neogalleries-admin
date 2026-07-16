@@ -238,7 +238,8 @@
 
                 let siteUrl = "";
                 try {
-                    const info = await NeoGalleries.NeoCitiesAPI.info(auth);
+                    const resp = await NeoGalleries.NeoCitiesAPI.info(auth);
+                    const info = resp.info || {};
                     const sitename = info.sitename || "";
                     siteUrl = `https://${sitename}.neocities.org`;
                     $("#accountSitename").textContent = sitename;
@@ -247,7 +248,7 @@
                     $("#accountDomain").textContent = info.domain || "—";
                     $("#accountHits").textContent = info.hits != null ? info.hits.toLocaleString() : "—";
                     $("#accountTags").textContent = (info.tags && info.tags.length) ? info.tags.join(", ") : "—";
-                    $("#accountCreated").textContent = info.created_at ? NeoGalleries.formatDisplayDate(info.createdate) : "—";
+                    $("#accountCreated").textContent = info.created_at ? NeoGalleries.formatDisplayDate(info.created_at) : "—";
                     $("#accountUpdated").textContent = info.last_updated ? NeoGalleries.formatDisplayDate(info.last_updated) : "—";
                 } catch (_) { }
 
