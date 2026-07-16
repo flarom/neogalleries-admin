@@ -84,9 +84,13 @@ const NeoGalleries = (() => {
   // ------------------------------------------------------------------
 
   async function loadGallery(baseUrl) {
-    const url = baseUrl
-      ? baseUrl.replace(/\/$/, "") + "/" + CONFIG.GALLERY_JSON
-      : CONFIG.GALLERY_JSON;
+    let url;
+    if (baseUrl) {
+      const sitename = baseUrl.replace(/^https?:\/\//, "").replace(/\.neocities\.org\/?$/, "");
+      url = CONFIG.PROXY_URL.replace(/\/$/, "") + "/file/" + encodeURIComponent(sitename) + "/" + CONFIG.GALLERY_JSON;
+    } else {
+      url = CONFIG.GALLERY_JSON;
+    }
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error("Não foi possível carregar o gallery.json");
     const data = await res.json();
