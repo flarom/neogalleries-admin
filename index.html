@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -199,6 +199,10 @@
 
             <div id="adminStatus"></div>
 
+            <div id="ngNoGalleryWarning" class="ng-status info ng-hidden">
+                This site does not appear to have a NeoGalleries installation yet. The gallery was just created — add your first item above to get started.
+            </div>
+
             <div id="itemList"></div>
 
             <!-- create/edit form -->
@@ -264,17 +268,17 @@
             let galleryData = null;
             let neocitiesSiteUrl = "";
 
-            // ---------- avisa se o proxy não foi configurado ----------
+            // ---------- warn if proxy is not configured ----------
             if (NeoGalleries.CONFIG.PROXY_URL.includes("SEU-WORKER")) {
                 $("#ngProxyWarning").classList.remove("ng-hidden");
             }
 
-            // ---------- alterna entre login com senha e login com chave de API ----------
+            // ---------- toggle between password login and API key login ----------
             const useKeyCheckbox = $("#useKeyCheckbox");
             useKeyCheckbox.addEventListener("change", () => {
                 const usingKey = useKeyCheckbox.checked;
                 $("#usernameField").classList.toggle("ng-hidden", usingKey);
-                $("#secretLabel").firstChild.textContent = usingKey ? "Chave de API" : "Senha";
+                $("#secretLabel").firstChild.textContent = usingKey ? "API Key" : "Password";
             });
 
             function setStatus(el, type, msg) {
@@ -285,7 +289,7 @@
             $("#loginForm").addEventListener("submit", async e => {
                 e.preventDefault();
                 const status = $("#loginStatus");
-                setStatus(status, "info", "Entrando...");
+                setStatus(status, "info", "Logging in...");
                 try {
                     let apiKey;
                     if (useKeyCheckbox.checked) {
@@ -294,7 +298,7 @@
                     } else {
                         const user = e.target.username.value.trim();
                         const pass = e.target.secret.value;
-                        if (!user) throw new Error("Informe o nome do seu site no Neocities.");
+                        if (!user) throw new Error("Please enter your Neocities site name.");
                         apiKey = await NeoGalleries.NeoCitiesAPI.getApiKey(user, pass);
                     }
                     sessionStorage.setItem("ng_admin_key", apiKey);
@@ -305,7 +309,7 @@
                 }
             });
 
-            // ---------- entra no painel ----------
+            // ---------- enter admin panel ----------
             async function enterAdmin(apiKey) {
                 auth = { apiKey };
                 $("#loginScreen").classList.add("ng-hidden");
@@ -333,8 +337,17 @@
                 try {
                     await NeoGalleries.NeoCitiesAPI.createDirectory(auth, "gallery");
                 } catch (_) { }
-                galleryData = await NeoGalleries.loadGallery(siteUrl);
+                let galleryLoaded = false;
+                try {
+                    galleryData = await NeoGalleries.loadGallery(siteUrl);
+                    galleryLoaded = true;
+                } catch (_) {
+                    galleryData = { items: [], site: {} };
+                }
                 renderList();
+                if (!galleryLoaded) {
+                    $("#ngNoGalleryWarning").classList.remove("ng-hidden");
+                }
             }
 
             $("#ngLogoutLink").addEventListener("click", e => {
@@ -348,17 +361,17 @@
                 if (saved) {
                     enterAdmin(saved).catch(err => {
                         sessionStorage.removeItem("ng_admin_key");
-                        setStatus($("#loginStatus"), "err", "Sessão expirou: " + err.message);
+                        setStatus($("#loginStatus"), "err", "Session expired: " + err.message);
                     });
                 }
             });
 
-            // ---------- lista de itens ----------
+            // ---------- item list ----------
             function renderList() {
                 const list = $("#itemList");
                 const items = NeoGalleries.sortByDateDesc(galleryData.items);
                 if (!items.length) {
-                    list.innerHTML = `<p class="ng-empty">Nenhum item ainda. Adicione o primeiro! ✦</p>`;
+                    list.innerHTML = `<p class="ng-empty">No items yet. Add the first one!</p>`;
                     return;
                 }
                 list.innerHTML = items.map(it => {
@@ -385,7 +398,7 @@
                 if (btn.dataset.action === "delete") handleDelete(filename);
             });
 
-            // ---------- formulário ----------
+            // ---------- form ----------
             const form = $("#itemForm");
             const imageFileInput = $("#imageFile");
 
@@ -398,7 +411,7 @@
                 document.getElementById("existingChildren").style.display = "none";
                 document.getElementById("existingChildren").innerHTML = "";
                 if (mode === "edit" && item) {
-                    $("#formTitle").textContent = "Editar item";
+                    $("#formTitle").textContent = "Edit Item";
                     form.dataset.originalFilename = item.filename;
                     form.filename.value = item.filename;
                     form.caption.value = item.caption || "";
@@ -408,15 +421,15 @@
                     form.authors.value = (item.authors || []).join(", ");
                     form.createdate.value = NeoGalleries.toInputLocal(item.createdate);
                     imageFileInput.required = false;
-                    $("#imageFileHint").textContent = "(deixe em branco para manter a imagem atual)";
+                    $("#imageFileHint").textContent = "(leave blank to keep the current image)";
                     const children = item.children || [];
                     if (children.length) {
                         const el = document.getElementById("existingChildren");
                         el.style.display = "block";
-                        el.innerHTML = `<small style="color:var(--muted);">Filhas existentes: ${children.map(c => NeoGalleries.escapeHtml(c)).join(", ")}</small>`;
+                        el.innerHTML = `<small style="color:var(--muted);">Existing children: ${children.map(c => NeoGalleries.escapeHtml(c)).join(", ")}</small>`;
                     }
                 } else {
-                    $("#formTitle").textContent = "Novo item";
+                    $("#formTitle").textContent = "New Item";
                     form.createdate.value = NeoGalleries.toInputLocal(NeoGalleries.nowAsCreateDate());
                     imageFileInput.required = true;
                     $("#imageFileHint").textContent = "";
@@ -443,7 +456,7 @@
             form.addEventListener("submit", async e => {
                 e.preventDefault();
                 const status = $("#adminStatus");
-                setStatus(status, "info", "Salvando...");
+                setStatus(status, "info", "Saving...");
                 try {
                     const originalFilename = form.dataset.originalFilename || null;
                     const isEdit = !!originalFilename;
@@ -460,12 +473,12 @@
                     };
 
                     if (!newItem.filename || !newItem.caption || !form.createdate.value) {
-                        throw new Error("Preencha ao menos o nome do arquivo, o título e a data.");
+                        throw new Error("Please fill in at least the filename, title, and date.");
                     }
 
                     const hasNewFile = imageFileInput.files && imageFileInput.files[0];
                     if (!isEdit && !hasNewFile) {
-                        throw new Error("Selecione uma imagem para um item novo.");
+                        throw new Error("Please select an image for a new item.");
                     }
 
                     const uploads = {};
@@ -519,7 +532,7 @@
                         try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, ["gallery/" + originalFilename]); } catch (_) { }
                     }
 
-                    setStatus(status, "ok", "Salvo com sucesso!");
+                    setStatus(status, "ok", "Saved successfully!");
                     closeForm();
                     renderList();
                 } catch (err) {
@@ -530,9 +543,9 @@
             async function handleDelete(filename) {
                 const item = galleryData.items.find(it => it.filename === filename);
                 const childFiles = (item && item.children) || [];
-                const alsoDeleteImage = confirm(`Excluir "${filename}" e ${childFiles.length ? childFiles.length + " imagem(ns) filha(s)" : "esta imagem"}?\nOK = excluir tudo · Cancelar = manter no servidor, remover só da galeria.`);
+                const alsoDeleteImage = confirm(`Delete "${filename}" and ${childFiles.length ? childFiles.length + " child image(s)" : "this image"}?\nOK = delete everything · Cancel = keep on server, remove from gallery only.`);
                 const status = $("#adminStatus");
-                setStatus(status, "info", "Excluindo...");
+                setStatus(status, "info", "Deleting...");
                 try {
                     galleryData.items = galleryData.items.filter(it => it.filename !== filename);
                     await saveGalleryAndRSS();
@@ -540,7 +553,7 @@
                         const toDelete = ["gallery/" + filename, ...childFiles.map(c => "gallery/" + c)];
                         try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, toDelete); } catch (_) { }
                     }
-                    setStatus(status, "ok", "Item excluído.");
+                    setStatus(status, "ok", "Item deleted.");
                     renderList();
                 } catch (err) {
                     setStatus(status, "err", err.message);
