@@ -1,30 +1,26 @@
 /**
- * neogalleries.js
- * -----------------------------------------------------------------------
- * Cérebro compartilhado do site: carrega o gallery.json, filtra, ordena,
- * pagina, renderiza os cards, gera o rss.xml e fala com a API do
- * Neocities (usado só pelo admin.html).
+ * NeoGalleries
+ * ============
  *
- * Inclua este arquivo em toda página com:
- *   <script src="neogalleries.js"></script>
- * -----------------------------------------------------------------------
+ * This module provides the core functionality for the NeoGalleries application, including data loading, filtering,
+ * pagination, rendering, and interaction with the Neocities API.
+ * 
+ * It also includes utility functions for date parsing, formatting, and HTML escaping.
  */
-
 const NeoGalleries = (() => {
 
   // ------------------------------------------------------------------
-  // CONFIGURAÇÃO - ajuste aqui
+  // MARK: Config
   // ------------------------------------------------------------------
   const CONFIG = {
     GALLERY_JSON: "gallery.json",
     GALLERY_DIR: "gallery/",
-    SITE_URL: window.location.origin || "https://flarom.neocities.org",
     PROXY_URL: "https://neogalleries.flarowom.workers.dev/",
     DEFAULT_PAGE_SIZE: 20
   };
 
   // ------------------------------------------------------------------
-  // Utilidades de data
+  // MARK: Date utils
   // ------------------------------------------------------------------
 
   function parseCreateDate(str) {
@@ -62,7 +58,7 @@ const NeoGalleries = (() => {
 
   function formatDisplayDate(str) {
     const d = parseCreateDate(str);
-    return d.toLocaleDateString("pt-BR", { year: "numeric", month: "long", day: "numeric" });
+    return d.toLocaleDateString("en", { year: "numeric", month: "long", day: "numeric" });
   }
 
   function formatRFC822(date) {
@@ -70,7 +66,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Texto seguro
+  // MARK: Safe text / HTML escaping
   // ------------------------------------------------------------------
 
   function escapeHtml(str) {
@@ -80,7 +76,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Carregamento de dados
+  // MARK: Data loading and sorting
   // ------------------------------------------------------------------
 
   async function loadGallery(baseUrl) {
@@ -104,7 +100,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Children helpers
+  // MARK: Children helpers
   // ------------------------------------------------------------------
 
   function allImages(item) {
@@ -122,7 +118,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Filtros (usados pelo gallery.html via querystring)
+  // MARK: Filters
   // ------------------------------------------------------------------
 
   function filterItems(items, params) {
@@ -131,6 +127,11 @@ const NeoGalleries = (() => {
     const tags = params.getAll("tag").flatMap(t => t.split(",")).map(t => t.trim()).filter(Boolean);
     if (tags.length) {
       result = result.filter(it => Array.isArray(it.tags) && it.tags.some(t => tags.includes(t)));
+    }
+
+    const notTags = params.getAll("not-tag").flatMap(t => t.split(",")).map(t => t.trim()).filter(Boolean);
+    if (notTags.length) {
+      result = result.filter(it => !Array.isArray(it.tags) || !it.tags.some(t => notTags.includes(t)));
     }
 
     const authors = params.getAll("author").flatMap(a => a.split(",")).map(a => a.trim()).filter(Boolean);
@@ -153,6 +154,18 @@ const NeoGalleries = (() => {
     return sortByDateDesc(result);
   }
 
+  function searchItems(items, query) {
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return items.slice();
+    return items.filter(it => {
+      const haystack = [
+        it.filename, it.caption, it.alt, it.description,
+        (it.tags || []).join(" "), (it.authors || []).join(" ")
+      ].join(" ").toLowerCase();
+      return haystack.includes(q);
+    });
+  }
+
   function paginate(items, index, page) {
     const idx = Number(index);
     const pg = Number(page);
@@ -170,7 +183,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Renderização (cards) - reaproveitado por index.html e gallery.html
+  // MARK: Rendering (cards)
   // ------------------------------------------------------------------
 
   function imgSrc(filename, baseUrl) {
@@ -179,7 +192,7 @@ const NeoGalleries = (() => {
   }
 
   function cardHTML(item, opts = {}) {
-    const linkHref = opts.link !== false ? `viewer.html?item=${encodeURIComponent(item.filename)}` : null;
+    const linkHref = opts.link !== false ? `view.html?item=${encodeURIComponent(item.filename)}` : null;
     const tagClasses = (item.tags || []).map(t => "tag-" + t.replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-_]/g, "")).join(" ");
     const classes = "ng-card" + (tagClasses ? " " + tagClasses : "");
     const img = `<img src="${escapeHtml(imgSrc(item.filename))}" alt="${escapeHtml(item.alt || "")}" loading="lazy">`;
@@ -198,27 +211,88 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // RSS
+  // MARK: RSS
   // ------------------------------------------------------------------
 
-  function buildRSS(gallery) {
+  function siteUrl(gallery, baseUrl) {
+    const explicit = String(baseUrl || "").trim();
+    if (explicit) return explicit.replace(/\/+$/, "");
+
+    const fromData = String((gallery && gallery.site && gallery.site.link) || "").trim();
+    if (fromData) return fromData.replace(/\/+$/, "");
+
+    const here = String(window.location.origin || "").replace(/\/+$/, "");
+    return here;
+  }
+
+  function viewUrl(item, base) {
+    return base + "/view.html?item=" + encodeURIComponent(item.filename);
+  }
+
+  function tagUrl(tag, base) {
+    return base + "/gallery.html?tag=" + encodeURIComponent(tag);
+  }
+
+  /** Absolute URL of an image served by the gallery. */
+  function imageUrl(item, base) {
+    return base + "/" + CONFIG.GALLERY_DIR + item.filename;
+  }
+
+  /**
+   * HTML body of an RSS <description>. Readers render HTML but strip CSS
+   * and <style>, so everything is inlined and self-contained.
+   */
+  function itemContentHTML(item, base) {
+    const title = String(item.caption || "").trim() || item.filename;
+    const tags = Array.isArray(item.tags) ? item.tags.filter(Boolean) : [];
+    const view = viewUrl(item, base);
+    const img = imageUrl(item, base);
+    const alt = String(item.alt || "").trim() || title;
+
+    const out = [];
+
+    // title as a heading
+    out.push(`<h1 style="font-size:1.4em;margin:0 0 .4em;font-weight:700;line-height:1.3">${escapeHtml(title)}</h1>`);
+
+    // tags, each linking to the gallery filtered by that tag
+    if (tags.length) {
+      const links = tags.map(t => `<a href="${escapeHtml(tagUrl(t, base))}" style="color:#d4a574;text-decoration:none">[${escapeHtml(t)}]</a>`).join(" ");
+      out.push(`<p style="margin:0 0 .8em">${links}</p>`);
+    }
+
+    // free-form description (already HTML from the author)
+    const desc = String(item.description || "").trim();
+    if (desc) {
+      out.push(`<div style="margin:0 0 1em;line-height:1.5">${desc}</div>`);
+    }
+
+    // the image itself
+    out.push(`<p style="margin:0 0 .8em"><img src="${escapeHtml(img)}" alt="${escapeHtml(alt)}" style="max-width:100%;height:auto;display:block;border:1px solid rgba(0,0,0,.2)"></p>`);
+
+    // link back to the viewer page
+    out.push(`<p style="margin:0"><a href="${escapeHtml(view)}" style="color:#d4a574">[View image]</a></p>`);
+
+    return out.join("\n");
+  }
+
+  function buildRSS(gallery, baseUrl) {
     const site = gallery.site || {};
     const items = sortByDateDesc(gallery.items || []);
-    const base = CONFIG.SITE_URL.replace(/\/$/, "");
+    const base = siteUrl(gallery, baseUrl);
 
     const rssItems = items.map(it => `
     <item>
       <title>${escapeHtml(it.caption)}</title>
-      <link>${escapeHtml(base + "/viewer.html?item=" + encodeURIComponent(it.filename))}</link>
+      <link>${escapeHtml(viewUrl(it, base))}</link>
       <guid isPermaLink="false">${escapeHtml(it.filename)}</guid>
-      <description><![CDATA[${it.description || ""}]]></description>
+      <description><![CDATA[${itemContentHTML(it, base).replace(/]]>/g, "]]]]><![CDATA[>")}]]></description>
       <pubDate>${formatRFC822(parseCreateDate(it.createdate))}</pubDate>
     </item>`).join("");
 
     return `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0">
   <channel>
-    <title>${escapeHtml(site.title || "Galeria")}</title>
+    <title>${escapeHtml(site.title || "Unamed Gallery")}</title>
     <link>${escapeHtml(base + "/index.html")}</link>
     <description>${escapeHtml(site.description || "")}</description>
     <lastBuildDate>${formatRFC822(new Date())}</lastBuildDate>${rssItems}
@@ -228,7 +302,7 @@ const NeoGalleries = (() => {
   }
 
   // ------------------------------------------------------------------
-  // Cliente da API do Neocities (via proxy de CORS) - usado pelo admin.html
+  // MARK: Neocities API Client
   // ------------------------------------------------------------------
 
   const NeoCitiesAPI = (() => {
@@ -240,7 +314,7 @@ const NeoGalleries = (() => {
 
     function apiUrl(path) {
       if (!CONFIG.PROXY_URL || CONFIG.PROXY_URL.includes("SEU-WORKER")) {
-        throw new Error("Configure PROXY_URL em neogalleries.js (veja proxy-worker/worker.js) antes de usar o painel admin.");
+        throw new Error("Configure PROXY_URL in neogalleries.js (see proxy-worker/worker.js) before using the admin panel.");
       }
       return CONFIG.PROXY_URL.replace(/\/$/, "") + "/api/" + path;
     }
@@ -252,9 +326,9 @@ const NeoGalleries = (() => {
         body: options.body
       });
       let data = {};
-      try { data = await res.json(); } catch (_) { /* resposta sem corpo JSON */ }
+      try { data = await res.json(); } catch (_) { /* no JSON response */ }
       if (!res.ok || data.result === "error") {
-        throw new Error(data.message || `Erro na API do Neocities (HTTP ${res.status})`);
+        throw new Error(data.message || `Neocities API error (HTTP ${res.status})`);
       }
       return data;
     }
@@ -303,8 +377,8 @@ const NeoGalleries = (() => {
     CONFIG,
     parseCreateDate, parseFilterDate, toInputLocal, fromInputLocal,
     nowAsCreateDate, formatDisplayDate, formatRFC822,
-    escapeHtml, loadGallery, sortByDateDesc, filterItems, paginate,
+    escapeHtml, loadGallery, sortByDateDesc, filterItems, searchItems, paginate,
     imgSrc, cardHTML, renderGrid, allImages, hasMultipleImages, itemImgSrc,
-    buildRSS, NeoCitiesAPI, openAdminWindow
+    siteUrl, viewUrl, tagUrl, imageUrl, itemContentHTML, buildRSS, NeoCitiesAPI, openAdminWindow
   };
 })();

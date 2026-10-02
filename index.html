@@ -7,325 +7,685 @@
     <title>Neogalleries Admin</title>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0');
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
-
+        /* ============================================
+           MARK: Tokens
+           ============================================ */
         :root {
             --bg: #2a2229;
+            --bg2: #322a31;
             --fg: #fffbe8;
             --muted: #a09895;
-            --line: rgba(255,251,232,.12);
-            --accent: #d4a574;
+            --line: rgba(255, 251, 232, .12);
+            --line-2: rgba(255, 251, 232, .32);
+            --accent: #74aed4;
             --danger: #c9706b;
-            --surface: rgba(255,255,255,.04);
+            --danger-surface: rgba(201, 112, 107, .04);
+            --ok: #9dc48b;
+            --surface: rgba(255, 255, 255, .04);
+
+            --fs: 0.9rem;
+            --hair: 0.1ch;
         }
 
         *, *::before, *::after { box-sizing: border-box; }
+
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: var(--line-2) var(--bg);
+        }
 
         body {
             margin: 0;
             background-color: var(--bg);
             color: var(--fg);
-            font-family: "Ubuntu", sans-serif;
-            line-height: 1.55;
+            font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, "Ubuntu Mono", Menlo, Consolas, "Liberation Mono", monospace;
+            font-size: var(--fs) !important;
+            line-height: 1.5;
         }
 
-        h1, h2, h3 { font-family: "Comic Neue", cursive; font-weight: 700; }
+        ::selection { background-color: var(--accent); color: var(--bg); }
 
-        .material-symbols-outlined { font-size: 20px; vertical-align: middle; }
+        /* no size changes anywhere: only weight. */
+        h1, h2, h3, b, strong { font-weight: 700; }
+        h1, h2, h3 { margin: 0; font-size: var(--fs); letter-spacing: 0.08ch; }
+        p { margin: 0; }
+        code { color: var(--accent); }
 
-        .fg-button {
-            display: inline-flex; align-items: center; gap: .35rem;
-            padding: .35rem .75rem;
-            border: 1px solid var(--line); border-radius: 4px;
-            color: var(--fg); text-decoration: none; font-size: .85rem;
-            background: transparent; cursor: pointer;
-            transition: border-color .15s, background .15s;
+        .muted { color: var(--muted); }
+        .accent { color: var(--accent); }
+        .danger { color: var(--danger); }
+        .hidden { display: none !important; }
+
+        a { color: var(--accent); text-decoration: none; cursor: default; }
+        a:hover { text-decoration: underline; }
+
+        /* ============================================
+           MARK: Screen
+           ============================================ */
+        main {
+            max-width: 132ch;
+            margin: 0 auto;
+            padding: 3ch 2ch 8ch;
+            display: flex;
+            flex-direction: column;
+            gap: 2ch;
         }
-        .fg-button:hover { border-color: var(--accent); background: var(--surface); }
-        .fg-button.secondary { border-style: dashed; }
-        .fg-button.destructive { border-color: var(--danger); color: var(--danger); }
-        .fg-button.destructive:hover { background: rgba(201,112,107,.1); }
 
-        /* layout */
-        main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
-        section { margin-bottom: 2.5rem; }
-        h1, h2, h3 { margin: 0 0 1rem; }
-        h1 { font-size: 1.6rem; }
-        h2 { font-size: 1.2rem; }
-        p { margin: .6rem 0; }
+        .panel {
+            background-color: var(--surface);
+            padding: 2ch;
+        }
 
-        .flex { display: flex; }
-        .vertical-center { align-items: center; }
-        .horizontal-space-between { justify-content: space-between; }
-        .gap { gap: .6rem; }
+        .panel-title {
+            color: var(--accent);
+            margin: 0 0 2ch;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 1ch;
+        }
+
+        .row.between { justify-content: space-between; }
+        .row.wrap { flex-wrap: wrap; }
+        .row.top { align-items: flex-start; }
         .grow { flex: 1; min-width: 0; }
 
-        /* forms */
-        .ng-form {
-            display: flex; flex-direction: column; gap: 1rem;
-            max-width: 520px;
+        .notice {
+            border: var(--hair) solid var(--line-2);
+            padding: 1ch 2ch;
+            color: var(--muted);
         }
-        .ng-form label {
-            display: flex; flex-direction: column; gap: .25rem;
-            font-size: .85rem; color: var(--muted);
-        }
-        .ng-form input[type="text"],
-        .ng-form input[type="password"],
-        .ng-form input[type="datetime-local"],
-        .ng-form textarea {
-            background: var(--surface); border: 1px solid var(--line);
-            color: var(--fg); padding: .5rem .65rem; border-radius: 4px;
-            font: inherit; font-size: .9rem;
-            transition: border-color .15s;
-        }
-        .ng-form input:focus,
-        .ng-form textarea:focus {
-            outline: none; border-color: var(--accent);
-        }
-        .ng-form input[type="file"] { font-size: .82rem; color: var(--muted); }
-        .ng-form button[type="submit"] { align-self: flex-start; margin-top: .3rem; }
-        .ng-form small { color: var(--muted); font-size: .78rem; }
+        .notice.err { border-color: var(--danger); color: var(--danger); }
 
-        /* status */
-        .ng-status {
-            padding: .55rem .8rem; border-radius: 4px;
-            font-size: .85rem; margin: .8rem 0; line-height: 1.5;
-        }
-        .ng-status.info { border: 1px solid var(--line); color: var(--muted); }
-        .ng-status.ok { border: 1px solid #6a9e6a; color: #a8d4a8; }
-        .ng-status.err { border: 1px solid var(--danger); color: #f0a8a4; }
-        .ng-status code {
-            background: rgba(255,255,255,.07); padding: .1rem .3rem;
-            border-radius: 3px; font-size: .82rem;
+        /* ============================================
+           MARK: Controls
+           ============================================ */
+        .btn {
+            font: inherit;
+            font-weight: 700;
+            color: var(--fg);
+            background: transparent;
+            border: var(--hair) solid transparent;
+            border-radius: 0;
+            padding: 0.5ch 1.5ch;
+            white-space: nowrap;
         }
 
-        /* item list */
-        .ng-item-row {
-            display: flex; align-items: center; gap: 1rem;
-            padding: .75rem 0; border-bottom: 1px solid var(--line);
-        }
-        .ng-item-row img {
-            width: 64px; height: 48px; object-fit: cover;
-            border-radius: 4px; background: var(--surface);
-        }
-        .ng-item-row small { display: block; color: var(--muted); font-size: .78rem; margin-top: .15rem; }
-        .ng-empty { color: var(--muted); text-align: center; padding: 3rem 0; }
+        .btn:hover:not(:disabled) { border-bottom-color: var(--accent); color: var(--accent); background-color: var(--surface); }
+        .btn:active:not(:disabled) { background-color: var(--surface); }
 
-        .ng-hidden { display: none !important; }
+        .btn.primary { border-bottom-color: var(--accent); color: var(--accent); }
+        .btn.primary:hover:not(:disabled) { background-color: var(--accent); color: var(--bg); }
 
-        /* links */
-        .fg-link {
-            color: var(--accent); text-decoration: none;
-            border-bottom: 1px solid transparent;
-            transition: border-color .15s;
+        .btn.danger { color: var(--danger); }
+        .btn.danger:hover:not(:disabled) { border-bottom-color: var(--danger); background-color: var(--danger-surface); color: var(--danger); }
+
+        .btn.ghost { border-color: transparent; color: var(--muted); }
+        .btn:disabled { color: var(--muted);     }
+
+        .field { display: flex; flex-direction: column; gap: 0.5ch; color: var(--muted); }
+        .field.row { flex-direction: row; align-items: center; gap: 1ch; }
+
+        input, select, textarea {
+            font: inherit;
+            color: var(--fg);
+            background-color: var(--bg);
+            border: var(--hair) solid transparent;
+            border-radius: 0;
+            padding: 0.5ch 1ch;
+            width: 100%;
+            caret-color: var(--accent);
+            caret-shape: block;
         }
-        .fg-link:hover { border-color: var(--accent); }
 
-        /* account */
-        #accountInfo dl { font-size: .88rem; line-height: 1.8; }
+        input:focus, select:focus, textarea:focus { outline: none; }
+        input::placeholder { color: var(--muted); opacity: .6; }
+        input[type="file"] { padding: 0.5ch 0; color: var(--muted); background-color: var(--bg); }
+        input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+
+        .form { display: flex; flex-direction: column; gap: 2ch; }
+
+        /* ============================================
+           MARK: Account
+           ============================================ */
+        #accountThumb {
+            width: 34ch;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border: var(--hair) solid var(--line);
+            background-color: var(--bg);
+        }
+
+        #accountInfo dl {
+            display: grid;
+            grid-template-columns: 12ch 1fr;
+            gap: 0 2ch;
+            margin: 0;
+        }
         #accountInfo dt { color: var(--muted); }
         #accountInfo dd { margin: 0; }
+
+        /* ============================================
+           MARK: Toolbar
+           ============================================ */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1ch 2ch;
+            margin-bottom: 2ch;
+            padding-bottom: 2ch;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: 1ch;
+            flex: 1;
+            min-width: 20ch;
+            border: var(--hair) solid transparent;
+            padding: 0 1ch;
+            color: var(--muted);
+            background-color: var(--bg);
+        }
+        .search:focus-within { border-color: var(--accent); }
+        .search input { border: none; background: none; padding: 0.5ch 0; }
+        .search input:focus { border: none; }
+        .search .btn { border-color: transparent; padding: 0 0.5ch; }
+
+        select { width: auto; }
+
+        /* ============================================
+           MARK: Item grid
+           ============================================ */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(22ch, 1fr));
+            gap: 2ch;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            border: var(--hair) solid transparent;
+            background-color: var(--surface);
+        }
+
+        .card figure {
+            margin: 0;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background-color: var(--surface);
+        }
+        .card figure img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+        .card .body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25ch;
+            padding: 1ch;
+            min-width: 0;
+        }
+        .card .name { font-weight: 700; overflow-wrap: anywhere; }
+        .card .meta { color: var(--muted); overflow-wrap: anywhere; }
+        .card .tags { color: var(--muted); overflow-wrap: anywhere; }
+        .card .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1ch; padding: 0 1ch 1ch; }
+        .card .actions .btn { padding-inline: 0.5ch; overflow: hidden; }
+
+        .empty { grid-column: 1 / -1; color: var(--muted); text-align: center; padding: 4ch 0; }
+
+        /* ============================================
+           MARK: Pager
+           ============================================ */
+        .pager {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 1ch;
+            margin-top: 2ch;
+        }
+        .pager .pos { color: var(--muted); padding: 0 1ch; }
+
+        /* ============================================
+           MARK: Dialog
+           ============================================ */
+        dialog.tui {
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--fg);
+            width: min(70ch, calc(100vw - 4ch));
+            max-width: calc(100vw - 4ch);
+            max-height: calc(100vh - 4ch);
+        }
+
+        dialog.tui::backdrop { background-color: rgba(16, 12, 14, .78); }
+
+        .window {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 4ch);
+            background-color: var(--bg2);
+            border: var(--hair) solid var(--line-2);
+            box-shadow: 0 0 0 1ch var(--bg);
+        }
+
+        .window-title {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2ch;
+            padding: 1ch 2ch;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .window-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1ch;
+            padding: 2ch;
+        }
+
+        .window-actions {
+            flex: none;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 1ch;
+            padding: 1ch 2ch;
+            border-top: var(--hair) solid var(--line);
+        }
+
+        .window-actions .busy { margin-right: auto; display: flex; align-items: center; gap: 1ch; color: var(--accent); }
+
+        .summary {
+            display: flex;
+            gap: 1ch;
+            align-items: center;
+            padding: 1ch;
+            border: var(--hair) solid var(--line);
+            background-color: var(--surface);
+        }
+        .summary img { width: 8ch; height: 8ch; object-fit: cover; border: var(--hair) solid var(--line); }
+
+        .opts { margin: 0; padding-left: 2ch; color: var(--muted); }
+        .opts li { margin-bottom: 0.5ch; }
+        .opts b { color: var(--fg); }
+
+        /* ============================================
+           MARK: Blinking cursor
+           The only progress feedback: a block cursor that
+           blinks while an action is running.
+           ============================================ */
+        .cursor { color: var(--accent); animation: tui-blink 1s step-end infinite; }
+        .cursor.calm { animation: none; }
+
+        @keyframes tui-blink {
+            0%, 50% { opacity: 1; }
+            50.01%, 100% { opacity: 0; }
+        }
+
+        /* ============================================
+           MARK: Status line
+           ============================================ */
+        #statusBar {
+            position: fixed;
+            inset: auto 0 0 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 1ch;
+            padding: 0.5ch 2ch;
+            background-color: var(--bg);
+        }
+
+        #statusBar .tag {
+            flex: none;
+            font-weight: 700;
+            padding: 0 1ch;
+            background-color: var(--muted);
+            color: var(--bg);
+        }
+
+        #statusBar .msg {
+            color: var(--muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        #statusBar[data-state="busy"] .tag { background-color: var(--accent); }
+        #statusBar[data-state="ok"] .tag { background-color: var(--ok); }
+        #statusBar[data-state="warn"] .tag { background-color: var(--accent); }
+        #statusBar[data-state="err"] .tag { background-color: var(--danger); }
+        #statusBar[data-state="err"] .msg { color: var(--danger); }
+        #statusBar[data-state="ok"] .msg,
+        #statusBar[data-state="warn"] .msg { color: var(--fg); }
+
+        /* ============================================
+           MARK: Responsive
+           ============================================ */
+        @media (max-width: 60ch) {
+            main { padding: 2ch 1ch 8ch; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(18ch, 1fr)); }
+            #accountThumb { width: 100%; }
+            .toolbar { align-items: stretch; }
+        }
     </style>
 </head>
 
 <body>
-    <main>
-        <div id="ngProxyWarning" class="ng-status err ng-hidden">
-            ⚠️ Configure <code>PROXY_URL</code> in <code>neogalleries.js</code> before using the admin panel (see
-            <code>proxy-worker/worker.js</code> and the instructions that come with this site).
+    <main id="screen">
+        <div id="ngProxyWarning" class="notice err hidden">
+            ! configure PROXY_URL in neogalleries.js before using this panel (see proxy-worker/worker.js).
         </div>
 
         <!-- MARK: login -->
-        <section id="loginScreen">
-            <h1>Login with Neocities</h1>
-            <p>Use the username and password of your Neocities site, or paste a API key directly.</p>
+        <section id="loginScreen" class="panel">
+            <h1 class="panel-title">login</h1>
+            <p class="muted">use the username and password of your neocities site, or paste an api key directly.</p>
 
-            <form class="ng-form" id="loginForm">
-                <label>
-                    <span style="display:flex; align-items:center; gap:0.4rem;">
-                        <input type="checkbox" id="useKeyCheckbox" style="width:auto;"> I already have an API key
-                    </span>
+            <form class="form" id="loginForm">
+                <label class="row muted">
+                    <input type="checkbox" id="useKeyCheckbox"> i already have an api key
                 </label>
-                <label id="usernameField">
-                    Username
+                <label class="field" id="usernameField">
+                    <span>username</span>
                     <input type="text" name="username" autocomplete="username">
                 </label>
-                <label id="secretLabel">
-                    Password
+                <label class="field" id="secretLabel">
+                    <span>password</span>
                     <input type="password" name="secret" autocomplete="current-password" required>
                 </label>
-                <button type="submit">Login</button>
+                <div class="row">
+                    <button type="submit" class="btn primary" id="ngLoginBtn">login</button>
+                </div>
             </form>
-
-            <div id="loginStatus"></div>
         </section>
 
-        <!-- MARK: account info -->
-        <section id="accountInfo" class="ng-hidden" style="margin-bottom:2rem;">
-            <div style="display:flex; gap:1.5rem; flex-wrap:wrap; align-items:flex-start;">
-                <img id="accountThumb" src="" alt="Site thumbnail"
-                    style="width:270px; height:202px; object-fit:cover; border-radius:6px; border:1px solid var(--line);">
-                <div style="min-width:200px;">
-                    <h2 id="accountSitename" style="margin:0 0 0.4rem;"></h2>
-                    <p id="accountSiteUrl" style="margin:0 0 0.8rem;"></p>
-                    <dl style="margin:0; font-size:0.9rem; line-height:1.8;">
-                        <dt style="color:var(--muted);">Domain</dt>
-                        <dd id="accountDomain" style="margin:0;"></dd>
-                        <dt style="color:var(--muted);">Hits</dt>
-                        <dd id="accountHits" style="margin:0;"></dd>
-                        <dt style="color:var(--muted);">Tags</dt>
-                        <dd id="accountTags" style="margin:0;"></dd>
-                        <dt style="color:var(--muted);">Created</dt>
-                        <dd id="accountCreated" style="margin:0;"></dd>
-                        <dt style="color:var(--muted);">Last Updated</dt>
-                        <dd id="accountUpdated" style="margin:0;"></dd>
+        <!-- MARK: account -->
+        <section id="accountInfo" class="panel hidden">
+            <h2 class="panel-title">account</h2>
+            <div class="row wrap top">
+                <img id="accountThumb" src="" alt="site thumbnail">
+                <div class="grow">
+                    <div class="row wrap">
+                        <b id="accountSitename"></b>@
+                        <span id="accountSiteUrl" class="muted"></span>
+                    </div>
+                    <dl>
+                        <dt>domain</dt>
+                        <dd id="accountDomain">—</dd>
+                        <dt>hits</dt>
+                        <dd id="accountHits">—</dd>
+                        <dt>tags</dt>
+                        <dd id="accountTags">—</dd>
+                        <dt>created</dt>
+                        <dd id="accountCreated">—</dd>
+                        <dt>updated</dt>
+                        <dd id="accountUpdated">—</dd>
                     </dl>
                 </div>
             </div>
-            <p style="margin-top:1rem;"><a href="#" id="ngLogoutLink" class="ng-hidden fg-link">Logout</a></p>
+            <p style="margin-top:2ch;"><a href="#" id="ngLogoutLink">logout</a></p>
         </section>
 
-        <!-- MARK: admin panel -->
+        <!-- MARK: items -->
+        <section id="adminScreen" class="panel hidden">
+            <h2 class="panel-title">gallery items</h2>
 
-        <section id="adminScreen" class="ng-hidden">
-            <div class="flex vertical-center horizontal-space-between">
-                <h1>Gallery Items</h1>
-                <div class="flex vertical-center gap">
-                    <button id="ngNewItemBtn" class="fg-button"><span class="material-symbols-outlined">add</span> New Item</button>
-                </div>
+            <div id="ngNoGalleryWarning" class="notice hidden">
+                this site has no neogalleries installation yet - it was just created, add the first item to get started.
             </div>
 
-            <div id="adminStatus"></div>
-
-            <div id="ngNoGalleryWarning" class="ng-status info ng-hidden">
-                This site does not appear to have a NeoGalleries installation yet. The gallery was just created — add your first item above to get started.
+            <div class="toolbar">
+                <label class="search">
+                    <span>find</span>
+                    <input type="search" id="ngSearch" placeholder="caption, filename, tag, author" autocomplete="off">
+                    <button type="button" class="btn ghost" id="ngSearchClear" title="clear search">esc</button>
+                </label>
+                <label class="field row">
+                    <span>per page</span>
+                    <select id="ngPageSize">
+                        <option value="12">12</option>
+                        <option value="24" selected>24</option>
+                        <option value="48">48</option>
+                        <option value="96">96</option>
+                    </select>
+                </label>
+                <span id="ngListCount" class="muted"></span>
+                <div class="grow"></div>
+                <button type="button" id="ngNewItemBtn" class="btn primary">+ new item</button>
             </div>
 
-            <div id="itemList"></div>
-
-            <!-- create/edit form -->
-            <div id="formPanel" class="ng-hidden"
-                style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--line);">
-                <h2 id="formTitle">New Item</h2>
-                <form class="ng-form" id="itemForm">
-                    <label>
-                        Main Image <span id="imageFileHint" style="font-weight:normal;"></span>
-                        <input type="file" name="imageFile" id="imageFile" accept="image/*,.svg">
-                    </label>
-                    <label>
-                        Alternative Images (children)
-                        <input type="file" name="childFiles" id="childFiles" accept="image/*,.svg" multiple>
-                        <small style="font-weight:normal;">Files will be named automatically (e.g., 134.1.png,
-                            134.2.png...)</small>
-                    </label>
-                    <div id="existingChildren" style="display:none; margin-top:0.3rem;"></div>
-                    <label>
-                        Filename (in gallery/)
-                        <input type="text" name="filename" required placeholder="ex: image.png">
-                    </label>
-                    <label>
-                        Title (caption)
-                        <input type="text" name="caption" required>
-                    </label>
-                    <label>
-                        Description (accepts HTML)
-                        <textarea name="description" rows="4"
-                            placeholder="&lt;p&gt;Your description here&lt;/p&gt;"></textarea>
-                    </label>
-                    <label>
-                        Alternative Text (alt)
-                        <input type="text" name="alt">
-                    </label>
-                    <label>
-                        Tags (separated by commas)
-                        <input type="text" name="tags" placeholder="e.g., cats, illustration">
-                    </label>
-                    <label>
-                        Authors (separated by commas)
-                        <input type="text" name="authors" placeholder="e.g., John Doe, Jane Smith">
-                    </label>
-                    <label>
-                        Creation Date
-                        <input type="datetime-local" name="createdate" required>
-                    </label>
-                    <div class="flex gap">
-                        <button type="submit" class="fg-button">Save</button>
-                        <button type="button" class="fg-button secondary" id="ngCancelForm">Cancel</button>
-                    </div>
-                </form>
-            </div>
+            <div id="itemList" class="grid"></div>
+            <div id="itemPager" class="pager"></div>
         </section>
     </main>
+
+    <!-- MARK: create/edit dialog -->
+    <dialog id="itemDialog" class="tui">
+        <form class="window" id="itemForm">
+            <header class="window-title">
+                <span id="formTitle">new item</span>
+                <button type="button" class="btn ghost" id="ngCloseForm" title="close (esc)">esc</button>
+            </header>
+
+            <div class="window-body form">
+                <label class="field">
+                    <span>main image <span id="imageFileHint" class="muted"></span></span>
+                    <input type="file" name="imageFile" id="imageFile" accept="image/*,.svg">
+                </label>
+                <label class="field">
+                    <span>alternative images (children)</span>
+                    <input type="file" name="childFiles" id="childFiles" accept="image/*,.svg" multiple>
+                    <span class="muted">files will be named automatically (e.g. 134.1.png, 134.2.png...)</span>
+                </label>
+                <div id="existingChildren" class="muted hidden"></div>
+                <label class="field">
+                    <span>filename (in gallery/)</span>
+                    <input type="text" name="filename" placeholder="ex: image.png">
+                </label>
+                <label class="field">
+                    <span>title (caption)</span>
+                    <input type="text" name="caption">
+                </label>
+                <label class="field">
+                    <span>description (accepts html)</span>
+                    <textarea name="description" rows="4" placeholder="&lt;p&gt;your description here&lt;/p&gt;"></textarea>
+                </label>
+                <label class="field">
+                    <span>alternative text (alt)</span>
+                    <input type="text" name="alt">
+                </label>
+                <label class="field">
+                    <span>tags (comma separated)</span>
+                    <input type="text" name="tags" placeholder="e.g. cats, illustration">
+                </label>
+                <label class="field">
+                    <span>authors (comma separated)</span>
+                    <input type="text" name="authors" placeholder="e.g. john doe, jane smith">
+                </label>
+                <label class="field">
+                    <span>creation date</span>
+                    <input type="datetime-local" name="createdate">
+                </label>
+            </div>
+
+            <footer class="window-actions">
+                <span id="formBusy" class="busy hidden"><span>working</span><span class="cursor">█</span></span>
+                <button type="button" class="btn" id="ngCancelForm">cancel</button>
+                <button type="submit" class="btn primary" id="ngSaveBtn">save</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <!-- MARK: delete dialog -->
+    <dialog id="deleteDialog" class="tui">
+        <div class="window">
+            <header class="window-title">
+                <span>delete</span>
+                <button type="button" class="btn ghost" id="ngCloseDelete" title="close (esc)">esc</button>
+            </header>
+
+            <div class="window-body">
+                <div id="ngDeleteSummary" class="summary"></div>
+                <p class="muted">nothing happens until you pick one of the actions below:</p>
+                <ul class="opts">
+                    <li><b>delete files</b> - remove the item from gallery.json and erase the image(s) from the site</li>
+                    <li><b>unlist only</b> - remove the item from gallery.json, the image(s) stay on the server</li>
+                    <li><b>cancel</b> - close this dialog, nothing happens</li>
+                </ul>
+            </div>
+
+            <footer class="window-actions">
+                <button type="button" class="btn" id="ngDeleteCancel">cancel</button>
+                <button type="button" class="btn" id="ngDeleteUnlist">unlist only</button>
+                <button type="button" class="btn danger" id="ngDeleteFiles">delete files</button>
+            </footer>
+        </div>
+    </dialog>
+
+    <!-- MARK: status line -->
+    <footer id="statusBar" data-state="ready">
+        <span class="tag" id="statusTag">ready</span>
+        <span class="msg" id="statusMsg">booting</span>
+        <div class="grow"></div>
+        <span class="cursor" id="statusCursor">█</span>
+    </footer>
 
     <script src="neogalleries.js"></script>
     <script>
         (() => {
             const $ = sel => document.querySelector(sel);
+            const esc = str => NeoGalleries.escapeHtml(str);
 
             let auth = null;
-            let galleryData = null;
+            let galleryData = { items: [], site: {} };
             let neocitiesSiteUrl = "";
+
+            let searchQuery = "";
+            let page = 1;
+            let totalPages = 1;
+            let pageSize = Number($("#ngPageSize").value) || 24;
+
+            let busy = false;
+            let pendingDelete = null;
+
+            const itemDialog = $("#itemDialog");
+            const deleteDialog = $("#deleteDialog");
+
+            // ---------- status line ----------
+            // Single source of feedback: the message is de-duplicated (the
+            // same text is never repainted twice) and the blinking cursor
+            // stays lit while an action is running.
+            const status = (() => {
+                const root = $("#statusBar");
+                const tag = $("#statusTag");
+                const msg = $("#statusMsg");
+                const cursor = $("#statusCursor");
+                let state = "ready";
+                let text = "";
+                let settle = null;
+
+                function idleText() {
+                    if (!galleryData.items.length) return "no items";
+                    return `${galleryData.items.length} items - page ${page}/${totalPages} - ${pageSize}/page`;
+                }
+
+                function paint(nextState, message) {
+                    if (nextState === state && message === text) return;   // no repaint
+                    state = nextState;
+                    text = message || "";
+                    root.dataset.state = state;
+                    tag.textContent = `${state}`;
+                    msg.textContent = text;
+                    cursor.classList.toggle("calm", state !== "busy");
+                    clearTimeout(settle);
+                }
+
+                return {
+                    busy(message) { paint("busy", message); },
+                    ok(message) { paint("ok", message); settle = setTimeout(() => this.idle(), 4000); },
+                    warn(message) { paint("warn", message); settle = setTimeout(() => this.idle(), 6000); },
+                    err(message) { paint("err", message); },
+                    idle() { clearTimeout(settle); paint("ready", idleText()); },
+                    refresh() { if (state !== "busy") this.idle(); }
+                };
+            })();
+
+            status.idle();
 
             // ---------- warn if proxy is not configured ----------
             if (NeoGalleries.CONFIG.PROXY_URL.includes("SEU-WORKER")) {
-                $("#ngProxyWarning").classList.remove("ng-hidden");
+                $("#ngProxyWarning").classList.remove("hidden");
+                status.err("PROXY_URL is not configured in neogalleries.js");
             }
 
             // ---------- toggle between password login and API key login ----------
             const useKeyCheckbox = $("#useKeyCheckbox");
             useKeyCheckbox.addEventListener("change", () => {
                 const usingKey = useKeyCheckbox.checked;
-                $("#usernameField").classList.toggle("ng-hidden", usingKey);
-                $("#secretLabel").firstChild.textContent = usingKey ? "API Key" : "Password";
+                $("#usernameField").classList.toggle("hidden", usingKey);
+                $("#secretLabel").firstChild.textContent = usingKey ? "api key" : "password";
             });
-
-            function setStatus(el, type, msg) {
-                el.innerHTML = msg ? `<div class="ng-status ${type}">${NeoGalleries.escapeHtml(msg)}</div>` : "";
-            }
 
             // ---------- login ----------
             $("#loginForm").addEventListener("submit", async e => {
                 e.preventDefault();
-                const status = $("#loginStatus");
-                setStatus(status, "info", "Logging in...");
+
+                const btn = $("#ngLoginBtn");
+                btn.disabled = true;
+                status.busy("asking neocities for an api key...");
+
                 try {
                     let apiKey;
                     if (useKeyCheckbox.checked) {
-                        apiKey = e.target.secret.value.trim();
+                        apiKey = $("#loginForm").elements.namedItem("secret").value.trim();
                         await NeoGalleries.NeoCitiesAPI.info({ apiKey });
                     } else {
-                        const user = e.target.username.value.trim();
-                        const pass = e.target.secret.value;
-                        if (!user) throw new Error("Please enter your Neocities site name.");
+                        const user = $("#loginForm").elements.namedItem("username").value.trim();
+                        const pass = $("#loginForm").elements.namedItem("secret").value;
+                        if (!user) throw new Error("please enter your neocities site name");
                         apiKey = await NeoGalleries.NeoCitiesAPI.getApiKey(user, pass);
                     }
+
                     sessionStorage.setItem("ng_admin_key", apiKey);
-                    setStatus(status, "", "");
+                    status.ok("logged in");
                     await enterAdmin(apiKey);
                 } catch (err) {
-                    setStatus(status, "err", err.message);
+                    status.err(`login failed: ${err.message}`);
+                } finally {
+                    btn.disabled = false;
                 }
             });
 
             // ---------- enter admin panel ----------
             async function enterAdmin(apiKey) {
                 auth = { apiKey };
-                $("#loginScreen").classList.add("ng-hidden");
-                $("#accountInfo").classList.remove("ng-hidden");
-                $("#adminScreen").classList.remove("ng-hidden");
-                $("#ngLogoutLink").classList.remove("ng-hidden");
+                $("#loginScreen").classList.add("hidden");
+                $("#accountInfo").classList.remove("hidden");
+                $("#adminScreen").classList.remove("hidden");
 
                 let siteUrl = "";
                 try {
+                    status.busy("reading site info...");
                     const resp = await NeoGalleries.NeoCitiesAPI.info(auth);
                     const info = resp.info || {};
                     const sitename = info.sitename || "";
                     siteUrl = `https://${sitename}.neocities.org`;
                     neocitiesSiteUrl = siteUrl;
                     $("#accountSitename").textContent = sitename;
-                    $("#accountSiteUrl").innerHTML = `<a href="${NeoGalleries.escapeHtml(siteUrl)}" target="_blank" rel="noopener">${NeoGalleries.escapeHtml(sitename)}.neocities.org</a>`;
+                    $("#accountSiteUrl").innerHTML = `<a href="${esc(siteUrl)}" target="_blank" rel="noopener">${esc(sitename)}.neocities.org</a>`;
                     $("#accountThumb").src = `https://neocities.org/site_screenshots/90/83/${encodeURIComponent(sitename)}/index.html.540x405.webp`;
                     $("#accountDomain").textContent = info.domain || "—";
                     $("#accountHits").textContent = info.hits != null ? info.hits.toLocaleString() : "—";
@@ -337,16 +697,28 @@
                 try {
                     await NeoGalleries.NeoCitiesAPI.createDirectory(auth, "gallery");
                 } catch (_) { }
+
                 let galleryLoaded = false;
                 try {
+                    status.busy("downloading gallery.json...");
                     galleryData = await NeoGalleries.loadGallery(siteUrl);
                     galleryLoaded = true;
                 } catch (_) {
                     galleryData = { items: [], site: {} };
                 }
+
+                // gallery.json is the source of truth for the published gallery
+                // URL. The admin panel may live on another host (GitHub Pages),
+                // so never let its own origin leak into the RSS <link>.
+                neocitiesSiteUrl = NeoGalleries.siteUrl(galleryData, siteUrl);
+
                 renderList();
+
                 if (!galleryLoaded) {
-                    $("#ngNoGalleryWarning").classList.remove("ng-hidden");
+                    $("#ngNoGalleryWarning").classList.remove("hidden");
+                    status.warn("no gallery.json on this site yet - create the first item");
+                } else {
+                    status.idle();
                 }
             }
 
@@ -359,93 +731,173 @@
             window.addEventListener("DOMContentLoaded", () => {
                 const saved = sessionStorage.getItem("ng_admin_key");
                 if (saved) {
+                    status.busy("restoring session...");
                     enterAdmin(saved).catch(err => {
                         sessionStorage.removeItem("ng_admin_key");
-                        setStatus($("#loginStatus"), "err", "Session expired: " + err.message);
+                        status.err(`session expired: ${err.message}`);
                     });
                 }
             });
 
-            // ---------- item list ----------
-            function renderList() {
-                const list = $("#itemList");
-                const items = NeoGalleries.sortByDateDesc(galleryData.items);
-                if (!items.length) {
-                    list.innerHTML = `<p class="ng-empty">No items yet. Add the first one!</p>`;
-                    return;
-                }
-                list.innerHTML = items.map(it => {
-                    const childCount = (it.children || []).length;
-                    return `
-      <div class="ng-item-row">
-        <img src="${NeoGalleries.escapeHtml(NeoGalleries.imgSrc(it.filename, neocitiesSiteUrl))}" alt="">
-        <div class="grow">
-          <strong>${NeoGalleries.escapeHtml(it.caption)}</strong>
-          <small>${NeoGalleries.escapeHtml(it.filename)}${childCount ? ` · ${childCount} child${childCount > 1 ? "ren" : ""}` : ""} · ${NeoGalleries.escapeHtml(NeoGalleries.formatDisplayDate(it.createdate))}</small>
+            // ---------- item grid ----------
+            function itemCardHTML(it) {
+                const children = it.children || [];
+                const tags = (it.tags || []).map(t => `[${t}]`).join(" ");
+                const extra = (it.tags || []).length > 5 ? ` +${it.tags.length - 5}` : "";
+
+                return `
+      <article class="card" data-filename="${esc(it.filename)}">
+        <figure><img src="${esc(NeoGalleries.imgSrc(it.filename, neocitiesSiteUrl))}" alt="${esc(it.alt || "")}" loading="lazy"></figure>
+        <div class="body">
+          <span class="name">${esc(it.caption)}</span>
+          <span class="meta">${esc(it.filename)}</span>
+          <span class="meta">${esc(NeoGalleries.formatDisplayDate(it.createdate))}${children.length ? ` · ${children.length} more image${children.length > 1 ? "s" : ""}` : ""}</span>
+          ${tags ? `<span class="tags">${esc(tags)}${extra}</span>` : ""}
         </div>
-        <button class="fg-button secondary" data-action="edit" data-filename="${NeoGalleries.escapeHtml(it.filename)}"><span class="material-symbols-outlined">edit</span> Edit</button>
-        <button class="fg-button destructive" data-action="delete" data-filename="${NeoGalleries.escapeHtml(it.filename)}"><span class="material-symbols-outlined">delete</span> Delete</button>
-      </div>`;
-                }).join("");
+        <div class="actions">
+          <button type="button" class="btn" data-action="edit" data-filename="${esc(it.filename)}">edit</button>
+          <button type="button" class="btn danger" data-action="delete" data-filename="${esc(it.filename)}">del</button>
+        </div>
+      </article>`;
+            }
+
+            function filteredItems() {
+                return NeoGalleries.searchItems(NeoGalleries.sortByDateDesc(galleryData.items), searchQuery);
+            }
+
+            function renderList() {
+                const items = filteredItems();
+                const result = NeoGalleries.paginate(items, pageSize, page);
+                const { pageItems } = result;
+                page = result.page;
+                totalPages = result.totalPages;
+
+                const list = $("#itemList");
+                list.innerHTML = items.length
+                    ? pageItems.map(itemCardHTML).join("")
+                    : `<p class="empty">${searchQuery ? "nothing matches that search" : "no items yet - add the first one"}</p>`;
+
+                const first = items.length ? (page - 1) * pageSize + 1 : 0;
+                const last = first + pageItems.length - 1;
+                const total = galleryData.items.length;
+                $("#ngListCount").textContent = items.length
+                    ? `${first}-${last} of ${items.length}${items.length !== total ? ` (filtered from ${total})` : ""}`
+                    : "";
+
+                renderPager(page, totalPages);
+                status.refresh();
+            }
+
+            function renderPager(currentPage, pages) {
+                const pager = $("#itemPager");
+                if (pages <= 1) { pager.innerHTML = ""; return; }
+
+                pager.innerHTML = `
+        <button type="button" class="btn" data-page="1" ${currentPage <= 1 ? "disabled" : ""} title="first page">&lt;&lt;</button>
+        <button type="button" class="btn" data-page="${currentPage - 1}" ${currentPage <= 1 ? "disabled" : ""} title="previous page">&lt;</button>
+        <span class="pos">page ${currentPage} / ${pages}</span>
+        <button type="button" class="btn" data-page="${currentPage + 1}" ${currentPage >= pages ? "disabled" : ""} title="next page">&gt;</button>
+        <button type="button" class="btn" data-page="${pages}" ${currentPage >= pages ? "disabled" : ""} title="last page">&gt;&gt;</button>`;
             }
 
             $("#itemList").addEventListener("click", e => {
                 const btn = e.target.closest("button[data-action]");
                 if (!btn) return;
-                const filename = btn.dataset.filename;
-                const item = galleryData.items.find(it => it.filename === filename);
+                const item = galleryData.items.find(it => it.filename === btn.dataset.filename);
+                if (!item) return;
                 if (btn.dataset.action === "edit") openForm("edit", item);
-                if (btn.dataset.action === "delete") handleDelete(filename);
+                if (btn.dataset.action === "delete") openDeleteDialog(item);
             });
 
-            // ---------- form ----------
+            $("#itemPager").addEventListener("click", e => {
+                const btn = e.target.closest("button[data-page]");
+                if (!btn || btn.disabled) return;
+                page = Number(btn.dataset.page);
+                renderList();
+                $("#adminScreen").scrollIntoView?.({ behavior: "smooth", block: "start" });
+            });
+
+            // ---------- search ----------
+            const searchInput = $("#ngSearch");
+            let searchTimer = null;
+
+            searchInput.addEventListener("input", () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    searchQuery = searchInput.value;
+                    page = 1;
+                    renderList();
+                }, 150);
+            });
+
+            $("#ngSearchClear").addEventListener("click", () => {
+                searchInput.value = "";
+                searchQuery = "";
+                page = 1;
+                renderList();
+                searchInput.focus();
+            });
+
+            $("#ngPageSize").addEventListener("change", e => {
+                pageSize = Number(e.target.value) || 24;
+                page = 1;
+                renderList();
+            });
+
+            // ---------- create/edit dialog ----------
             const form = $("#itemForm");
+            const field = name => form.elements.namedItem(name);
             const imageFileInput = $("#imageFile");
 
             $("#ngNewItemBtn").addEventListener("click", () => openForm("create"));
             $("#ngCancelForm").addEventListener("click", closeForm);
+            $("#ngCloseForm").addEventListener("click", closeForm);
+            itemDialog.addEventListener("click", e => { if (e.target === itemDialog) closeForm(); });
+            itemDialog.addEventListener("cancel", e => { e.preventDefault(); closeForm(); });
+            itemDialog.addEventListener("close", () => { if (!busy) form.reset(); });
 
             function openForm(mode, item) {
                 form.reset();
                 delete form.dataset.originalFilename;
-                document.getElementById("existingChildren").style.display = "none";
-                document.getElementById("existingChildren").innerHTML = "";
+                $("#existingChildren").classList.add("hidden");
+                $("#existingChildren").innerHTML = "";
+
                 if (mode === "edit" && item) {
-                    $("#formTitle").textContent = "Edit Item";
+                    $("#formTitle").textContent = "edit item";
                     form.dataset.originalFilename = item.filename;
-                    form.filename.value = item.filename;
-                    form.caption.value = item.caption || "";
-                    form.description.value = item.description || "";
-                    form.alt.value = item.alt || "";
-                    form.tags.value = (item.tags || []).join(", ");
-                    form.authors.value = (item.authors || []).join(", ");
-                    form.createdate.value = NeoGalleries.toInputLocal(item.createdate);
-                    imageFileInput.required = false;
+                    field("filename").value = item.filename;
+                    field("caption").value = item.caption || "";
+                    field("description").value = item.description || "";
+                    field("alt").value = item.alt || "";
+                    field("tags").value = (item.tags || []).join(", ");
+                    field("authors").value = (item.authors || []).join(", ");
+                    field("createdate").value = NeoGalleries.toInputLocal(item.createdate);
                     $("#imageFileHint").textContent = "(leave blank to keep the current image)";
+
                     const children = item.children || [];
                     if (children.length) {
-                        const el = document.getElementById("existingChildren");
-                        el.style.display = "block";
-                        el.innerHTML = `<small style="color:var(--muted);">Existing children: ${children.map(c => NeoGalleries.escapeHtml(c)).join(", ")}</small>`;
+                        const el = $("#existingChildren");
+                        el.classList.remove("hidden");
+                        el.textContent = `existing children: ${children.join(", ")}`;
                     }
                 } else {
-                    $("#formTitle").textContent = "New Item";
-                    form.createdate.value = NeoGalleries.toInputLocal(NeoGalleries.nowAsCreateDate());
-                    imageFileInput.required = true;
+                    $("#formTitle").textContent = "new item";
+                    field("createdate").value = NeoGalleries.toInputLocal(NeoGalleries.nowAsCreateDate());
                     $("#imageFileHint").textContent = "";
                 }
-                $("#formPanel").classList.remove("ng-hidden");
-                $("#formPanel").scrollIntoView({ behavior: "smooth" });
+
+                itemDialog.showModal();
             }
 
             function closeForm() {
-                $("#formPanel").classList.add("ng-hidden");
+                if (busy) return;
+                itemDialog.close();
                 form.reset();
             }
 
             imageFileInput.addEventListener("change", () => {
-                if (!form.dataset.originalFilename && imageFileInput.files[0] && !form.filename.value) {
-                    form.filename.value = imageFileInput.files[0].name.replace(/\s+/g, "_");
+                if (!form.dataset.originalFilename && imageFileInput.files[0] && !field("filename").value) {
+                    field("filename").value = imageFileInput.files[0].name.replace(/\s+/g, "_");
                 }
             });
 
@@ -455,41 +907,55 @@
 
             form.addEventListener("submit", async e => {
                 e.preventDefault();
-                const status = $("#adminStatus");
-                setStatus(status, "info", "Saving...");
+                if (busy) return;
+
+                // ----- validate before touching anything -----
+                const originalFilename = form.dataset.originalFilename || null;
+                const isEdit = !!originalFilename;
+                const hasNewFile = imageFileInput.files && imageFileInput.files[0];
+                const filename = field("filename").value.trim();
+                const caption = field("caption").value.trim();
+                const createdate = field("createdate").value;
+
+                if (!filename || !caption || !createdate) {
+                    status.err("filename, title and date are required");
+                    return;
+                }
+
+                if (!isEdit && !hasNewFile) {
+                    status.err("a new item needs an image file");
+                    return;
+                }
+
+                const newItem = {
+                    filename,
+                    caption,
+                    description: field("description").value,
+                    alt: field("alt").value.trim(),
+                    tags: splitList(field("tags").value),
+                    authors: splitList(field("authors").value),
+                    createdate: NeoGalleries.fromInputLocal(createdate),
+                    children: []
+                };
+
+                // ----- immediate feedback -----
+                busy = true;
+                $("#ngSaveBtn").disabled = true;
+                $("#formBusy").classList.remove("hidden");
+                status.busy(`${isEdit ? "updating" : "creating"} ${filename}...`);
+
+                const snapshot = galleryData.items.slice();
+
                 try {
-                    const originalFilename = form.dataset.originalFilename || null;
-                    const isEdit = !!originalFilename;
-
-                    const newItem = {
-                        filename: form.filename.value.trim(),
-                        caption: form.caption.value.trim(),
-                        description: form.description.value,
-                        alt: form.alt.value.trim(),
-                        tags: splitList(form.tags.value),
-                        authors: splitList(form.authors.value),
-                        createdate: NeoGalleries.fromInputLocal(form.createdate.value),
-                        children: []
-                    };
-
-                    if (!newItem.filename || !newItem.caption || !form.createdate.value) {
-                        throw new Error("Please fill in at least the filename, title, and date.");
-                    }
-
-                    const hasNewFile = imageFileInput.files && imageFileInput.files[0];
-                    if (!isEdit && !hasNewFile) {
-                        throw new Error("Please select an image for a new item.");
-                    }
-
                     const uploads = {};
                     if (hasNewFile) {
-                        uploads["gallery/" + newItem.filename] = imageFileInput.files[0];
-                    } else if (isEdit && newItem.filename !== originalFilename) {
+                        uploads["gallery/" + filename] = imageFileInput.files[0];
+                    } else if (isEdit && filename !== originalFilename) {
+                        status.busy(`renaming ${originalFilename} -> ${filename}...`);
                         const blob = await (await fetch(NeoGalleries.imgSrc(originalFilename, neocitiesSiteUrl))).blob();
-                        uploads["gallery/" + newItem.filename] = blob;
+                        uploads["gallery/" + filename] = blob;
                     }
 
-                    // Preserve existing children on edit
                     if (isEdit) {
                         const existingItem = galleryData.items.find(it => it.filename === originalFilename);
                         if (existingItem && existingItem.children) {
@@ -497,15 +963,12 @@
                         }
                     }
 
-                    // Handle new child files
-                    const childFiles = document.getElementById("childFiles").files;
+                    const childFiles = $("#childFiles").files;
                     if (childFiles.length > 0) {
-                        const stem = newItem.filename.replace(/\.[^.]+$/, "");
-                        const ext = newItem.filename.includes(".") ? newItem.filename.split(".").pop() : "png";
-                        // Find the next available child index
+                        const stem = filename.replace(/\.[^.]+$/, "");
+                        const ext = filename.includes(".") ? filename.split(".").pop() : "png";
                         let nextIdx = 1;
-                        const existingChildren = newItem.children;
-                        while (existingChildren.some(c => c === `${stem}.${nextIdx}.${ext}`)) nextIdx++;
+                        while (newItem.children.some(c => c === `${stem}.${nextIdx}.${ext}`)) nextIdx++;
 
                         for (const file of childFiles) {
                             const childName = `${stem}.${nextIdx}.${ext}`;
@@ -516,6 +979,7 @@
                     }
 
                     if (Object.keys(uploads).length) {
+                        status.busy(`uploading ${Object.keys(uploads).length} file(s)...`);
                         await NeoGalleries.NeoCitiesAPI.upload(auth, uploads);
                     }
 
@@ -526,43 +990,117 @@
                         galleryData.items.unshift(newItem);
                     }
 
+                    status.busy("writing gallery.json + rss.xml...");
                     await saveGalleryAndRSS();
 
-                    if (isEdit && newItem.filename !== originalFilename) {
-                        try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, ["gallery/" + originalFilename]); } catch (_) { }
+                    let leftover = null;
+                    if (isEdit && filename !== originalFilename) {
+                        try {
+                            await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, ["gallery/" + originalFilename]);
+                        } catch (err) {
+                            leftover = originalFilename;
+                        }
                     }
 
-                    setStatus(status, "ok", "Saved successfully!");
+                    busy = false;
                     closeForm();
+                    page = 1;
                     renderList();
+
+                    if (leftover) {
+                        status.warn(`saved, but "${leftover}" is still on the server`);
+                    } else {
+                        status.ok(`${isEdit ? "updated" : "created"} ${caption}`);
+                    }
                 } catch (err) {
-                    setStatus(status, "err", err.message);
+                    galleryData.items = snapshot;
+                    status.err(err.message);
+                } finally {
+                    busy = false;
+                    $("#ngSaveBtn").disabled = false;
+                    $("#formBusy").classList.add("hidden");
                 }
             });
 
-            async function handleDelete(filename) {
-                const item = galleryData.items.find(it => it.filename === filename);
-                const childFiles = (item && item.children) || [];
-                const alsoDeleteImage = confirm(`Delete "${filename}" and ${childFiles.length ? childFiles.length + " child image(s)" : "this image"}?\nOK = delete everything · Cancel = keep on server, remove from gallery only.`);
-                const status = $("#adminStatus");
-                setStatus(status, "info", "Deleting...");
+            // ---------- delete dialog ----------
+            $("#ngCloseDelete").addEventListener("click", closeDeleteDialog);
+            $("#ngDeleteCancel").addEventListener("click", closeDeleteDialog);
+            $("#ngDeleteUnlist").addEventListener("click", () => runDelete("unlist"));
+            $("#ngDeleteFiles").addEventListener("click", () => runDelete("all"));
+            deleteDialog.addEventListener("click", e => { if (e.target === deleteDialog) closeDeleteDialog(); });
+
+            // Esc, backdrop clicks and the close button all just forget the
+            // pending item: nothing is deleted unless a delete button is pressed.
+            deleteDialog.addEventListener("cancel", e => { e.preventDefault(); closeDeleteDialog(); });
+            deleteDialog.addEventListener("close", () => { pendingDelete = null; });
+
+            function openDeleteDialog(item) {
+                pendingDelete = item;
+
+                const images = NeoGalleries.allImages(item);
+                $("#ngDeleteSummary").innerHTML = `
+          <img src="${esc(NeoGalleries.imgSrc(item.filename, neocitiesSiteUrl))}" alt="">
+          <div class="grow" style="min-width:0;">
+            <b>${esc(item.caption)}</b>
+            <div class="muted">${esc(images.join(", "))}</div>
+          </div>`;
+
+                deleteDialog.showModal();
+            }
+
+            function closeDeleteDialog() {
+                pendingDelete = null;
+                if (deleteDialog.open) deleteDialog.close();
+            }
+
+            async function runDelete(mode) {
+                const item = pendingDelete;
+                if (!item || busy) return;
+
+                busy = true;
+                closeDeleteDialog();
+
+                const images = NeoGalleries.allImages(item);
+                status.busy(`removing ${item.filename} from gallery.json...`);
+
+                const index = galleryData.items.indexOf(item);
+                galleryData.items.splice(index, 1);
+
                 try {
-                    galleryData.items = galleryData.items.filter(it => it.filename !== filename);
                     await saveGalleryAndRSS();
-                    if (alsoDeleteImage) {
-                        const toDelete = ["gallery/" + filename, ...childFiles.map(c => "gallery/" + c)];
-                        try { await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, toDelete); } catch (_) { }
+
+                    if (mode === "all") {
+                        try {
+                            await NeoGalleries.NeoCitiesAPI.deleteFiles(auth, images.map(f => "gallery/" + f));
+                        } catch (err) {
+                            renderList();
+                            status.warn(`unlisted ${item.filename}, but its image(s) stayed on the server: ${err.message}`);
+                            return;
+                        }
+
+                        renderList();
+                        status.ok(`deleted ${item.filename}${images.length > 1 ? ` + ${images.length - 1} image(s)` : ""}`);
+                    } else {
+                        renderList();
+                        status.warn(`unlisted ${item.filename} - ${images.length} file(s) kept on the server`);
                     }
-                    setStatus(status, "ok", "Item deleted.");
-                    renderList();
                 } catch (err) {
-                    setStatus(status, "err", err.message);
+                    galleryData.items.splice(index, 0, item);
+                    renderList();
+                    status.err(err.message);
+                } finally {
+                    busy = false;
                 }
             }
 
+            // ---------- saving gallery.json + rss.xml ----------
             async function saveGalleryAndRSS() {
+                // Keep the published gallery URL recorded in gallery.json, so the
+                // RSS stays correct no matter which host runs this panel.
+                if (neocitiesSiteUrl) galleryData.site = { ...(galleryData.site || {}), link: neocitiesSiteUrl };
+
                 const jsonBlob = new Blob([JSON.stringify(galleryData, null, 2)], { type: "application/json" });
-                const rssBlob = new Blob([NeoGalleries.buildRSS(galleryData)], { type: "application/xml" });
+                const rssBlob = new Blob([NeoGalleries.buildRSS(galleryData, neocitiesSiteUrl)], { type: "application/xml" });
                 await NeoGalleries.NeoCitiesAPI.upload(auth, {
                     "gallery.json": jsonBlob,
                     "rss.xml": rssBlob
