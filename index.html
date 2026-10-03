@@ -11,17 +11,17 @@
            MARK: Tokens
            ============================================ */
         :root {
-            --bg: #2a2229;
-            --bg2: #322a31;
-            --fg: #fffbe8;
-            --muted: #a09895;
-            --line: rgba(255, 251, 232, .12);
-            --line-2: rgba(255, 251, 232, .32);
-            --accent: #74aed4;
-            --danger: #c9706b;
-            --danger-surface: rgba(201, 112, 107, .04);
-            --ok: #9dc48b;
-            --surface: rgba(255, 255, 255, .04);
+            --bg:               #000000ff;
+            --fg:               #ffffffff;
+            --muted:            #aaaaaaff;
+            --line:             #ffffff33;
+            --line-2:           #ffffffaa;
+            --accent:           #00cdcdff;
+            --accent-surface:   #00cdcd11;
+            --danger:           #ff5555ff;
+            --danger-surface:   #ff555511;
+            --ok:               #55ff55ff;
+            --surface:          #ffffff11;
 
             --fs: 0.9rem;
             --hair: 0.1ch;
@@ -93,11 +93,10 @@
         .grow { flex: 1; min-width: 0; }
 
         .notice {
-            border: var(--hair) solid var(--line-2);
             padding: 1ch 2ch;
             color: var(--muted);
         }
-        .notice.err { border-color: var(--danger); color: var(--danger); }
+        .notice.err { background-color: var(--danger-surface); color: var(--danger); }
 
         /* ============================================
            MARK: Controls
@@ -113,16 +112,21 @@
             white-space: nowrap;
         }
 
-        .btn:hover:not(:disabled) { border-bottom-color: var(--accent); color: var(--accent); background-color: var(--surface); }
+        .btn:hover:not(:disabled) { border-bottom-color: var(--line-2); background-color: var(--surface); }
+        .btn:focus:not(:disabled) { outline: none; border-bottom-color: var(--line-2); background-color: var(--surface);}
         .btn:active:not(:disabled) { background-color: var(--surface); }
 
         .btn.primary { border-bottom-color: var(--accent); color: var(--accent); }
-        .btn.primary:hover:not(:disabled) { background-color: var(--accent); color: var(--bg); }
+        .btn.primary:focus:not(:disabled) { border-bottom-color: var(--accent); background-color: var(--accent-surface); }
+        .btn.primary:hover:not(:disabled) { border-bottom-color: var(--accent); background-color: var(--accent-surface); }
 
         .btn.danger { color: var(--danger); }
+        .btn.danger:focus:not(:disabled) { border-bottom-color: var(--danger); background-color: var(--danger-surface); }
         .btn.danger:hover:not(:disabled) { border-bottom-color: var(--danger); background-color: var(--danger-surface); color: var(--danger); }
 
         .btn.ghost { border-color: transparent; color: var(--muted); }
+        .btn.ghost:focus:not(:disabled) { border-bottom-color: var(--line-2); background-color: var(--surface); }
+        .btn.ghost:hover:not(:disabled) { border-bottom-color: var(--line-2); background-color: var(--surface); }
         .btn:disabled { color: var(--muted);     }
 
         .field { display: flex; flex-direction: column; gap: 0.5ch; color: var(--muted); }
@@ -131,18 +135,18 @@
         input, select, textarea {
             font: inherit;
             color: var(--fg);
-            background-color: var(--bg);
             border: var(--hair) solid transparent;
             border-radius: 0;
             padding: 0.5ch 1ch;
             width: 100%;
             caret-color: var(--accent);
             caret-shape: block;
+            background-color: var(--bg);
         }
 
-        input:focus, select:focus, textarea:focus { outline: none; }
+        input:focus, select:focus, textarea:focus { outline: none; border-bottom: 1px solid var(--accent); background-color: var(--accent-surface); }
         input::placeholder { color: var(--muted); opacity: .6; }
-        input[type="file"] { padding: 0.5ch 0; color: var(--muted); background-color: var(--bg); }
+        input[type="file"] { padding: 0.5ch 0; color: var(--muted) }
         input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 
         .form { display: flex; flex-direction: column; gap: 2ch; }
@@ -154,7 +158,6 @@
             width: 34ch;
             aspect-ratio: 4 / 3;
             object-fit: cover;
-            border: var(--hair) solid var(--line);
             background-color: var(--bg);
         }
 
@@ -209,7 +212,6 @@
         .card {
             display: flex;
             flex-direction: column;
-            border: var(--hair) solid transparent;
             background-color: var(--surface);
         }
 
@@ -218,6 +220,7 @@
             aspect-ratio: 1 / 1;
             overflow: hidden;
             background-color: var(--surface);
+
         }
         .card figure img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
@@ -263,15 +266,14 @@
             max-height: calc(100vh - 4ch);
         }
 
-        dialog.tui::backdrop { background-color: rgba(16, 12, 14, .78); }
+        dialog.tui::backdrop { background-color: #000000aa; }
 
         .window {
             display: flex;
             flex-direction: column;
             max-height: calc(100vh - 4ch);
-            background-color: var(--bg2);
-            border: var(--hair) solid var(--line-2);
-            box-shadow: 0 0 0 1ch var(--bg);
+            background-color: var(--bg);
+            box-shadow: 1ch 1ch pink;
         }
 
         .window-title {
@@ -281,8 +283,9 @@
             justify-content: space-between;
             gap: 2ch;
             padding: 1ch 2ch;
-            color: var(--accent);
+            color: var(--text);
             font-weight: 700;
+            background-color: var(--surface);
         }
 
         .window-body {
@@ -293,6 +296,7 @@
             flex-direction: column;
             gap: 1ch;
             padding: 2ch;
+            background-color: var(--surface);
         }
 
         .window-actions {
@@ -303,6 +307,7 @@
             gap: 1ch;
             padding: 1ch 2ch;
             border-top: var(--hair) solid var(--line);
+            background-color: var(--surface);
         }
 
         .window-actions .busy { margin-right: auto; display: flex; align-items: center; gap: 1ch; color: var(--accent); }
@@ -312,10 +317,9 @@
             gap: 1ch;
             align-items: center;
             padding: 1ch;
-            border: var(--hair) solid var(--line);
             background-color: var(--surface);
         }
-        .summary img { width: 8ch; height: 8ch; object-fit: cover; border: var(--hair) solid var(--line); }
+        .summary img { width: 8ch; height: 8ch; object-fit: cover; }
 
         .opts { margin: 0; padding-left: 2ch; color: var(--muted); }
         .opts li { margin-bottom: 0.5ch; }
@@ -742,7 +746,7 @@
             // ---------- item grid ----------
             function itemCardHTML(it) {
                 const children = it.children || [];
-                const tags = (it.tags || []).map(t => `[${t}]`).join(" ");
+                const tags = (it.tags || []).map(t => `${t}`).join(" ");
                 const extra = (it.tags || []).length > 5 ? ` +${it.tags.length - 5}` : "";
 
                 return `
