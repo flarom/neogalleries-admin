@@ -46,6 +46,7 @@ code { color: var(--muted);}
 pre { line-height: 1; padding: 1ch; overflow-x: auto; }
 blockquote { border-left: 1ch solid var(--line); padding-left: 1ch; margin-left: 1ch; }
 hr { border: none; border-bottom: var(--hair) solid var(--line); margin: 2ch 0; }
+ul {list-style-type: square}
 fieldset {
     padding: 1ch;
     background-color: var(--surface);
@@ -176,10 +177,28 @@ input, select, textarea {
     background-color: var(--surface);
 }
 
-input:focus, select:focus, textarea:focus { outline: none; border-bottom: 1px solid var(--accent); background-color: var(--accent-surface); }
+label { user-select: none; }
+input:not([type="checkbox"]):focus, select:focus, textarea:focus { outline: none; border-bottom: 1px solid var(--accent); background-color: var(--accent-surface); }
 input::placeholder { color: var(--muted); opacity: .6; }
 input[type="file"] { padding: 0.5ch 0; color: var(--muted) }
-input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 2ch;
+    height: 2ch;
+    margin:0;
+    padding:1ch;
+    border:none;
+    background-color: var(--surface);
+    border-left: 2ch solid var(--surface);
+}
+input[type="checkbox"]:checked {
+  background-color: var(--surface);
+  border-right: 2ch solid var(--accent);
+  border-left: 0ch solid var(--surface);
+}
+input[type="checkbox"]:focus { outline: none; background-color: var(--accent-surface); }
+
 
 .form { display: flex; flex-direction: column; gap: 2ch; }
 

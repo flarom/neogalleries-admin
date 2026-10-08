@@ -15,27 +15,41 @@
         </div>
 
         <!-- MARK: login -->
-        <section id="loginScreen" class="panel">
-            <h1 class="panel-title">login</h1>
-            <p class="muted">use the username and password of your neocities site, or paste an api key directly.</p>
+        <section id="loginScreen">
+            <pre><code>888b    888                                     888 888                  d8b
+8888b   888                                     888 888                  Y8P
+88888b  888                                     888 888
+888Y88b 888 .d8888b. .d8PY8b. .d8PY8b.  d8888b. 888 888 .d8888b. 888,88b 888 .d8888b. .d8888b
+888 Y88b888 88P  Y88 888  888 888  888     "888 888 888 88P  Y88 888P    888 88P  Y88 88K
+888  Y88888 88888888 888  888 888  888 .d8PY888 888 888 88888888 888     888 88888888 "Y888b.
+888   Y8888 88b.     888  888 888  888 888  888 888 888 88b.     888     888 88b.         X88
+888    Y888 "Y8888P" "Y8bd8P" "Y8bd888 "Y8bd888 888 888 "Y8888P" 888     888 "Y8888P" Y8888P"
+                                   888
+                              Y8b d88P
+                               "Y88P"</code></pre>
 
-            <form class="form" id="loginForm">
-                <label class="row muted">
-                    <input type="checkbox" id="useKeyCheckbox"> i already have an api key
-                </label>
-                <label class="field" id="usernameField">
-                    <span>username</span>
-                    <input type="text" name="username" autocomplete="username">
-                </label>
-                <label class="field" id="secretLabel">
-                    <span id="secretLabelText">password</span>
-                    <input type="password" name="secret" autocomplete="current-password" required>
-                </label>
-                <div class="row">
-                    <button type="submit" class="btn primary" id="ngLoginBtn">login</button>
-                    <a href="about.html" class="muted">What is this?</a>
-                </div>
-            </form>
+            <section class="panel">
+                <h1 class="panel-title">login with neocities</h1>
+                <p class="muted">use the username and password of your neocities site, or paste an api key directly.</p>
+                
+                <form class="form" id="loginForm">
+                    <label class="row muted">
+                        <input type="checkbox" id="useKeyCheckbox"> i already have an api key
+                    </label>
+                    <label class="field" id="usernameField">
+                        <span>username</span>
+                        <input type="text" name="username" autocomplete="username">
+                    </label>
+                    <label class="field" id="secretLabel">
+                        <span id="secretLabelText">password</span>
+                        <input type="password" name="secret" autocomplete="current-password" required>
+                    </label>
+                    <div class="row">
+                        <button type="submit" class="btn primary" id="ngLoginBtn">login</button>
+                        <a href="about.html" class="muted">What is this?</a>
+                    </div>
+                </form>
+            </section>
         </section>
 
         <!-- MARK: account -->
